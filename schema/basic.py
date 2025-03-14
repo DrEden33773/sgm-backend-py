@@ -2,8 +2,6 @@ from enum import StrEnum, auto
 from typing import Any
 
 STR_TUPLE_SPLITTER = "^"
-type EmptyDict = dict[str, str]
-""" ## 空字典 """
 
 
 class Op(StrEnum):
@@ -17,6 +15,7 @@ class Op(StrEnum):
 
 class AttrType(StrEnum):
     Int = "int"
+    Float = "float"
     String = "string"
 
 
