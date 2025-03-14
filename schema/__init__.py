@@ -27,13 +27,13 @@ type VertexInfo = tuple[str, AttrInfo]
 type EdgeInfo = tuple[str, str, str, AttrInfo]
 """ 起点 vid, 终点 vid, 标签, (属性信息) """
 type VertexInfoDict = dict[str, VertexInfo]
-""" 顶点信息 """
+""" { vid -> 顶点信息 } """
 type EdgeInfoDict = dict[str, EdgeInfo]
-""" 边信息 """
+""" { eid -> 边信息 } """
 
 
 class DisplayedInstr(TypedDict):
-    """展示用-指令"""
+    """可序列化-指令"""
 
     vid: str
     type: InstructionType
