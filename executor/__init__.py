@@ -1,7 +1,8 @@
 import json
 from typing import cast
 
-from schema import PlanDict
+from schema import PlanData
+from schema.json_repr_typed_dict import PlanDict
 from utils import dbg
 
 
@@ -11,13 +12,14 @@ class ExecEngine:
 
     @staticmethod
     def deserialize_json(plan_json: str):
-        plan_data = json.loads(plan_json)
-        plan = cast(PlanDict, plan_data)
+        plan_json_raw = json.loads(plan_json)
+        plan_dict = cast(PlanDict, plan_json_raw)
+        plan_data = PlanData.from_plan_dict(plan_dict)
 
-        matching_order = plan.get("matchingOrder", [])
-        vertices = plan.get("vertices", {})
-        edges = plan.get("edges", {})
-        instructions = plan.get("instructions", [])
+        matching_order = plan_data.matching_order
+        vertices = plan_data.vertices
+        edges = plan_data.edges
+        instructions = plan_data.instructions
 
         dbg.print_header("Matching Order")
         dbg.pprint(matching_order)
@@ -28,4 +30,4 @@ class ExecEngine:
         dbg.print_header("Instructions")
         dbg.pprint(instructions)
 
-        return plan
+        return plan_dict

@@ -1,15 +1,17 @@
 import pprint as pp
 from functools import lru_cache
 
+WIDTH = 40
+
 
 @lru_cache
-def header(header: str, splitter: str = "=", rep_times: int = 30) -> str:
+def header(header: str, splitter: str = "=", rep_times: int = WIDTH // 2) -> str:
     return f"{splitter * rep_times} {header} {splitter * rep_times}"
 
 
-def print_header(str: str, splitter: str = "=", rep_times: int = 30) -> None:
+def print_header(str: str, splitter: str = "=", rep_times: int = WIDTH // 2) -> None:
     print(header(str, splitter, rep_times))
 
 
 def pprint(obj: object):
-    pp.pprint(obj, indent=2, width=60, sort_dicts=False)
+    pp.pprint(obj, indent=2, width=WIDTH, sort_dicts=False, compact=False)

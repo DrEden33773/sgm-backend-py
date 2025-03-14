@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from schema import Attr, EdgeInfoDict, Label, VertexInfoDict, Vid
+from schema import Attr, Label, Vid
 
 
 class StorageAdapter(ABC):
@@ -12,7 +12,7 @@ class StorageAdapter(ABC):
         self,
         label: Label,
         attr: Optional[Attr] = None,
-    ) -> VertexInfoDict:
+    ):
         """
         ## Init
 
@@ -27,7 +27,7 @@ class StorageAdapter(ABC):
         dst_v_label: Label,
         e_attr: Optional[Attr] = None,
         dst_v_attr: Optional[Attr] = None,
-    ) -> EdgeInfoDict:
+    ):
         """
         ## GetAdj
 

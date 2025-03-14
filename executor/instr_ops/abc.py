@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from executor.matching_ctx import MatchingCtx
-from schema import DisplayedInstr
+from schema import Instruction
 from storage.abc import StorageAdapter
 
 
@@ -13,5 +13,5 @@ class InstrOperator:
         self.ctx = ctx
 
     @abstractmethod
-    async def execute(self, instr: DisplayedInstr):
+    async def execute(self, instr: Instruction):
         """执行指令"""
