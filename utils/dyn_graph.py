@@ -53,14 +53,26 @@ class DynGraph:
     """
 
     v_entities: dict[Vid, Vertex] = field(default_factory=dict)
-    """ { vid -> Vertex } """
+    """ 
+    点实体 
+    - { vid -> Vertex }
+    """
     e_entities: dict[Eid, Edge] = field(default_factory=dict)
-    """ { eid -> Edge } """
+    """ 
+    边实体 
+    - { eid -> Edge }
+    """
 
     adj_table: dict[Vid, VNode] = field(default_factory=dict)
-    """ 邻接表 { vid -> VNode } """
+    """ 
+    邻接表 
+    - { vid -> VNode }
+    """
     half_dangling_v_e: dict[Vid, set[Eid]] = field(default_factory=dict)
-    """ 半垂悬边集 (点索引) { vid -> { eid } } """
+    """
+    半垂悬边集 (点索引) 
+    - { vid -> { eid } }
+    """
 
     """ ========== 基本操作 ========== """
 
@@ -92,10 +104,14 @@ class DynGraph:
         # 给相关的 dangling_eid 提升
         self.half_dangling_v_e.pop(vertex.vid, None)
 
+        return self
+
     def update_v_batch(self, vertices: list[Vertex]):
         """批量更新点信息"""
 
         self.v_entities.update({v.vid: v for v in vertices})
+
+        return self
 
     def update_e(self, edge: Edge):
         """更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
@@ -108,7 +124,7 @@ class DynGraph:
             dst_v = self.adj_table.setdefault(edge.dst_vid, VNode())
             src_v.e_out.add(edge.eid)
             dst_v.e_in.add(edge.eid)
-            return
+            return self
 
         if self.has_vid(edge.src_vid):
             # src_v -[edge]-> ?
@@ -126,11 +142,15 @@ class DynGraph:
             # ? -[edge]-> ?
             raise RuntimeError(COMP_DANGLE_BASE.format(edge.eid))
 
+        return self
+
     def update_e_batch(self, edges: list[Edge]):
         """批量更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
         for edge in edges:
             self.update_e(edge)
+
+        return self
 
     def remove_e(self, eid: Eid, has_handled_adj_table: bool = False):
         """删除边信息"""
@@ -152,10 +172,14 @@ class DynGraph:
         # 删除实体映射
         self.e_entities.pop(eid, None)
 
+        return self
+
     def remove_e_batch(self, eids: list[Eid]):
         """批量删除边信息"""
         for eid in eids:
             self.remove_e(eid)
+
+        return self
 
     def remove_v(
         self, vid: Vid, level: RemoveVCascadeLevel = RemoveVCascadeLevel.SelfOnly
@@ -182,6 +206,8 @@ class DynGraph:
             for del_e in deleted.e_in | deleted.e_out:
                 self.remove_e(del_e, has_handled_adj_table=True)
 
+        return self
+
     def remove_v_batch_same_level(
         self,
         vids: list[Vid],
@@ -191,6 +217,8 @@ class DynGraph:
 
         for vid in vids:
             self.remove_v(vid, level)
+
+        return self
 
     def remove_v_batch_diff_level(
         self,
@@ -207,6 +235,8 @@ class DynGraph:
         if len(vids) > len(levels):
             for vid in vids[len(levels) :]:
                 self.remove_v(vid, RemoveVCascadeLevel.SelfOnly)
+
+        return self
 
     """ ========== 高级功能 ========== """
 
