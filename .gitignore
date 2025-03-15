@@ -11,3 +11,5 @@ wheels/
 
 # Ruff cache
 .ruff_cache/
+
+llm-chat-history.md

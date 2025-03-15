@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from schema.basic import AttrType, InstructionType, Op
+from schema.basic import STR_TUPLE_SPLITTER, AttrType, InstructionType, Op, VarPrefix
 from schema.json_repr_typed_dict import (
     AttrInfo,
     DisplayedInstr,
@@ -51,6 +51,29 @@ class Instruction:
     @classmethod
     def from_displayed_instr(cls, info: DisplayedInstr):
         return cls(**info)
+
+    def is_single_op(self) -> bool:
+        """是否为 `单输入变量` 操作"""
+
+        return bool(self.single_op)
+
+    def resolve_vid_from_target_var(self):
+        """从 `target_var` 解析 vid"""
+
+        if self.target_var == VarPrefix.DataVertexSet:
+            return ""
+        return self.target_var.split(STR_TUPLE_SPLITTER)[1]
+
+    def resolve_vids_from_multi_ops(self):
+        """从 `multi_ops` 解析 vids"""
+
+        vids: list[str] = []
+        for op in self.multi_ops:
+            if op == VarPrefix.DataVertexSet:
+                vids.append("")
+            else:
+                vids.append(op.split(STR_TUPLE_SPLITTER)[1])
+        return vids
 
 
 @dataclass
