@@ -18,12 +18,12 @@ class InitOperator(InstrOperator):
         matched_vs = await self.storage_adapter.load_vertices(label, attr)
 
         # 更新容器
-        for dgv in matched_vs:
-            dgv_Cs = self.ctx.bucket.setdefault(instr.vid, {})
-            Cs = dgv_Cs.setdefault(dgv.vid, [])
+        for dg_v in matched_vs:
+            dg_v_candidates = self.ctx.bucket.setdefault(instr.vid, {})
+            candidates = dg_v_candidates.setdefault(dg_v.vid, [])
 
-            partial_matched = DynGraph().update_v(dgv)
-            Cs.append(partial_matched)
+            partial_matched = DynGraph().update_v(dg_v)
+            candidates.append(partial_matched)
 
         # 更新变量
         self.ctx.update_var(instr.target_var, instr.vid)

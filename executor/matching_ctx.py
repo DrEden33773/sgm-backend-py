@@ -35,6 +35,13 @@ class MatchingCtx:
     - { eid -> Edge }
     """
 
+    recent_initialized_vids: dict[PgEid, set[DgVid]] = field(default_factory=dict)
+    """
+    刚从数据库中 `载入` 的顶点
+    - { pg_vid -> { dg_vid } }
+    - { `块标签 pg_vid` -> { `载入的 dg_vid` } } 
+    """
+
     bucket: dict[PgVid, dict[DgVid, list[PartialMatched]]] = field(default_factory=dict)
     """ 
     容器
