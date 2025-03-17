@@ -1,0 +1,22 @@
+[
+  {
+    "type": "Init",
+    "target_var_prefixes": ["f"]
+  },
+  {
+    "type": "GetAdj",
+    "target_var_prefixes": ["A"]
+  },
+  {
+    "type": "Intersect",
+    "target_var_prefixes": ["C", "T"]
+  },
+  {
+    "type": "Foreach",
+    "target_var_prefixes": ["f"]
+  },
+  {
+    "type": "Report",
+    "target_var_prefixes": ["f"]
+  }
+]

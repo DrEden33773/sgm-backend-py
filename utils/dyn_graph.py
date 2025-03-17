@@ -3,11 +3,11 @@ from enum import Enum
 
 from schema import Edge, Eid, Vertex, Vid
 
-COMP_DANGLE_BASE = """\
+COMPLETELY_DANGLE_BASE = """\
 Detected `completely-dangling edge`:
-    ? -[eid: {}]-> ?
+    ? -[<eid: {}>]-> ?
     
-Complete-dangling edge is not allowed.
+Completely-dangling edge is NOT allowed.
 """
 
 
@@ -71,10 +71,16 @@ class DynGraph:
     half_dangling_v_e: dict[Vid, set[Eid]] = field(default_factory=dict)
     """
     半垂悬边集 (点索引) 
+    - 一个点 可以连接 多个垂悬边
     - { vid -> { eid } }
     """
+    half_dangling_es: set[Eid] = field(default_factory=set)
+    """
+    半垂悬边集
+    - { eid }
+    """
 
-    """ ========== 基本操作 ========== """
+    """ ========== 底层功能 ========== """
 
     def has_vid(self, vid: Vid):
         return vid in self.v_entities
@@ -82,11 +88,17 @@ class DynGraph:
     def has_all_vids(self, vids: list[Vid]):
         return all(vid in self.v_entities for vid in vids)
 
+    def has_any_vid(self, vids: list[Vid]):
+        return any(vid in self.v_entities for vid in vids)
+
     def has_eid(self, eid: Eid):
         return eid in self.e_entities
 
     def has_all_eids(self, eids: list[Eid]):
         return all(eid in self.e_entities for eid in eids)
+
+    def has_any_eid(self, eids: list[Eid]):
+        return any(eid in self.e_entities for eid in eids)
 
     def get_v_from_vid(self, vid: Vid):
         return self.v_entities.get(vid)
@@ -94,7 +106,19 @@ class DynGraph:
     def get_e_from_eid(self, eid: Eid):
         return self.e_entities.get(eid)
 
-    """ ========== 底层功能 ========== """
+    def is_edge_connective(self, edge: Edge):
+        """边是否具有连接性 (至少一个顶点存在, 因为允许 `半垂悬边`)"""
+        return self.has_any_vid([edge.src_vid, edge.dst_vid])
+
+    def get_vid_set(self, ignore: set[Vid] = set()):
+        """获取点集合"""
+        return set(self.v_entities.keys()) - ignore
+
+    def get_v_count(self):
+        """获取点数量"""
+        return len(self.v_entities)
+
+    """ ========== 基本操作 ========== """
 
     def update_v(self, vertex: Vertex):
         """更新点信息"""
@@ -102,7 +126,9 @@ class DynGraph:
         self.v_entities[vertex.vid] = vertex
 
         # 给相关的 dangling_eid 提升
-        self.half_dangling_v_e.pop(vertex.vid, None)
+        removed_dangling_es = self.half_dangling_v_e.pop(vertex.vid, None)
+        if removed_dangling_es:
+            self.half_dangling_es -= removed_dangling_es
 
         return self
 
@@ -129,18 +155,22 @@ class DynGraph:
         if self.has_vid(edge.src_vid):
             # src_v -[edge]-> ?
             self.half_dangling_v_e.setdefault(edge.src_vid, set()).add(edge.eid)
+            self.half_dangling_es.add(edge.eid)
+
             src_v = self.adj_table.setdefault(edge.src_vid, VNode())
             src_v.e_out.add(edge.eid)
 
         elif self.has_vid(edge.dst_vid):
             # ? -[edge]-> dst_v
             self.half_dangling_v_e.setdefault(edge.dst_vid, set()).add(edge.eid)
+            self.half_dangling_es.add(edge.eid)
+
             dst_v = self.adj_table.setdefault(edge.dst_vid, VNode())
             dst_v.e_in.add(edge.eid)
 
         else:
             # ? -[edge]-> ?
-            raise RuntimeError(COMP_DANGLE_BASE.format(edge.eid))
+            raise RuntimeError(COMPLETELY_DANGLE_BASE.format(edge.eid))
 
         return self
 
@@ -165,9 +195,12 @@ class DynGraph:
                 v.e_in.discard(eid)
                 v.e_out.discard(eid)
 
-        # 处理 half-dangling (仅有两种可能)
+        # 处理 half-dangling-v-e (仅有两种可能: 边的两个顶点)
         self.half_dangling_v_e[del_e.src_vid].discard(eid)
         self.half_dangling_v_e[del_e.dst_vid].discard(eid)
+
+        # 处理 half-dangling-es (边本身)
+        self.half_dangling_es.discard(eid)
 
         # 删除实体映射
         self.e_entities.pop(eid, None)
@@ -195,6 +228,7 @@ class DynGraph:
         # 把相关的 edge 全部设为 half-dangling
         for del_e in deleted.e_in | deleted.e_out:
             self.half_dangling_v_e.setdefault(vid, set()).add(del_e)
+            self.half_dangling_es.add(del_e)
 
         # 摘除关联边 (从邻接表中移除, 但是不删除)
         for v in self.adj_table.values():

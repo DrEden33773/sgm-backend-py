@@ -1,3 +1,5 @@
+from typing import override
+
 from executor.instr_ops.abc import InstrOperator
 from executor.instr_ops.factory import OperatorFactory
 from schema import Instruction, InstructionType
@@ -6,24 +8,23 @@ from utils.dyn_graph import DynGraph
 
 @OperatorFactory.register(InstructionType.Init)
 class InitOperator(InstrOperator):
-    """Init 指令算子"""
+    """
+    Init 指令算子
 
-    async def execute(self, instr: Instruction):
+    - 结果类型: f (EnumerateTarget)
+    """
+
+    @override
+    def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
         """执行指令"""
 
-        pg_v = self.ctx.get_pg_v(instr.vid)
-        label, attr = pg_v.label, pg_v.attr
+        pattern_v = self.ctx.get_pattern_v(instr.vid)
+        label, attr = pattern_v.label, pattern_v.attr
 
         # 加载顶点
-        matched_vs = await self.storage_adapter.load_vertices(label, attr)
+        matched_vs = self.storage_adapter.load_vertices(label, attr)
 
         # 更新容器
         for dg_v in matched_vs:
-            dg_v_candidates = self.ctx.bucket.setdefault(instr.vid, {})
-            candidates = dg_v_candidates.setdefault(dg_v.vid, [])
-
-            partial_matched = DynGraph().update_v(dg_v)
-            candidates.append(partial_matched)
-
-        # 更新变量
-        self.ctx.update_var(instr.target_var, instr.vid)
+            matched_dg = DynGraph().update_v(dg_v)
+            self.ctx.append_to_f_pool(instr.target_var, matched_dg)

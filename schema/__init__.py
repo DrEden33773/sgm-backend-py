@@ -89,6 +89,9 @@ class Vertex:
         label, attr = info
         return cls(vid, label, Attr.from_attr_info(attr))
 
+    def __hash__(self) -> int:
+        return hash(self.vid)
+
 
 @dataclass
 class Edge:
@@ -104,6 +107,9 @@ class Edge:
     def from_edge_info(cls, eid: Eid, info: EdgeInfoTuple):
         src_vid, dst_vid, label, attr = info
         return cls(eid, label, src_vid, dst_vid, Attr.from_attr_info(attr))
+
+    def __hash__(self) -> int:
+        return hash(self.eid)
 
 
 @dataclass

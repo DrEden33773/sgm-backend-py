@@ -1,23 +1,22 @@
-from typing import Any, Dict, List
+from typing import override
 
 from executor.instr_ops.abc import InstrOperator
 from executor.instr_ops.factory import OperatorFactory
-from schema import Instruction, InstructionType, Vid
+from schema import Instruction, InstructionType
+from utils.dyn_graph import DynGraph
 
 
 @OperatorFactory.register(InstructionType.Report)
 class ReportOperator(InstrOperator):
     """Report 指令算子"""
 
-    async def execute(self, instr: Instruction):
+    @override
+    def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
         """执行指令"""
 
-    def _collect_matches(
-        self,
-        results: List[Dict[str, Vid]],
-        cur_match: Dict[str, Vid],
-        var_names: List[str],
-        idx: int,
-        var_values: Dict[str, Any],
-    ):
-        """递归收集匹配结果"""
+        f_pool = self.ctx.f_pool
+
+        # 更新结果
+        for f_bucket in f_pool.values():
+            curr_group = f_bucket.all_matched
+            result.append(curr_group)

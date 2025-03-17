@@ -4,4 +4,13 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["neomodel>=5.4.5", "networkx>=3.4.2", "sqlmodel>=0.0.24"]
+dependencies = [
+    "frozendict>=2.4.6",
+    "neomodel-stubs",
+    "neomodel>=5.4.5",
+    "networkx>=3.4.2",
+    "sqlmodel>=0.0.24",
+]
+
+[tool.uv.sources]
+neomodel-stubs = { git = "https://github.com/laurentS/neomodel-stubs" }
