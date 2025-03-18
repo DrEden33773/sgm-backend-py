@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from schema import Attr, Edge, Label, Vertex
+from schema import Attr, DataEdge, DataVertex, Label
 
 
 class StorageAdapter(ABC):
@@ -12,7 +12,7 @@ class StorageAdapter(ABC):
         self,
         v_label: Label,
         v_attr: Optional[Attr] = None,
-    ) -> list[Vertex]:
+    ) -> list[DataVertex]:
         """
         ## Init
 
@@ -24,7 +24,7 @@ class StorageAdapter(ABC):
         self,
         e_label: Label,
         e_attr: Optional[Attr] = None,
-    ) -> list[Edge]:
+    ) -> list[DataEdge]:
         """
         ## Init
 

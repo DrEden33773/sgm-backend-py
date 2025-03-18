@@ -1,19 +1,20 @@
 from typing import override
 
 from executor.instr_ops.abc import InstrOperator
-from executor.instr_ops.factory import OperatorFactory
 from executor.matching_ctx import A_Bucket
-from schema import Instruction, InstructionType
+from schema import Instruction
+from utils import dbg
 from utils.dyn_graph import DynGraph
 
 
-@OperatorFactory.register(InstructionType.GetAdj)
 class GetAdjOperator(InstrOperator):
     """GetAdj 指令算子"""
 
     @override
     def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
         """执行指令"""
+
+        dbg.pprint_instr(instr)
 
         pattern_es = self.ctx.get_pattern_e_batch(instr.expand_eid_list)
         f_bucket = self.ctx.resolve_f_bucket(instr.single_op)

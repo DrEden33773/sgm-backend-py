@@ -1,6 +1,6 @@
 from typing import Optional, override
 
-from schema import Attr, Edge, Label, Vertex
+from schema import Attr, DataEdge, DataVertex, Label
 from storage.abc import StorageAdapter
 
 
@@ -10,7 +10,7 @@ class Neo4jStorageAdapter(StorageAdapter):
         self,
         v_label: Label,
         v_attr: Optional[Attr] = None,
-    ) -> list[Vertex]:
+    ) -> list[DataVertex]:
         # TODO: Implement this method
         raise NotImplementedError
 
@@ -19,6 +19,6 @@ class Neo4jStorageAdapter(StorageAdapter):
         self,
         e_label: Label,
         e_attr: Optional[Attr] = None,
-    ) -> list[Edge]:
+    ) -> list[DataEdge]:
         # TODO: Implement this method
         raise NotImplementedError

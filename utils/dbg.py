@@ -1,6 +1,8 @@
 import pprint as pp
 from functools import lru_cache
 
+from schema import Instruction
+
 WIDTH = 40
 
 
@@ -15,3 +17,9 @@ def print_header(str: str, splitter: str = "=", rep_times: int = WIDTH // 2) -> 
 
 def pprint(obj: object):
     pp.pprint(obj, indent=2, width=WIDTH, sort_dicts=False, compact=False)
+
+
+def pprint_instr(instr: Instruction):
+    print_header("↓↓↓")
+    pprint(instr)
+    print_header("↑↑↑")

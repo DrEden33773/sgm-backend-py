@@ -16,8 +16,7 @@ class InstrOperator:
         self.ctx = ctx
 
     @lru_cache
-    @staticmethod
-    def resolve_var(target_var: str):
+    def resolve_var(self, target_var: str):
         """解析变量 -> (变量类型, 变量名)"""
         var_type, var_name = target_var.split(STR_TUPLE_SPLITTER)
         return VarPrefix(var_type), var_name

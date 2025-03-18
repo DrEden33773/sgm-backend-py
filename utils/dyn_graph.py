@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from schema import Edge, Eid, Vertex, Vid
+from schema import DataEdge, DataVertex, Eid, Vid
 
 COMPLETELY_DANGLE_BASE = """\
 Detected `completely-dangling edge`:
@@ -52,12 +52,12 @@ class DynGraph:
     - 类似 networkx.MultiDiGraph
     """
 
-    v_entities: dict[Vid, Vertex] = field(default_factory=dict)
+    v_entities: dict[Vid, DataVertex] = field(default_factory=dict)
     """ 
     点实体 
     - { vid -> Vertex }
     """
-    e_entities: dict[Eid, Edge] = field(default_factory=dict)
+    e_entities: dict[Eid, DataEdge] = field(default_factory=dict)
     """ 
     边实体 
     - { eid -> Edge }
@@ -106,7 +106,7 @@ class DynGraph:
     def get_e_from_eid(self, eid: Eid):
         return self.e_entities.get(eid)
 
-    def is_edge_connective(self, edge: Edge):
+    def is_edge_connective(self, edge: DataEdge):
         """边是否具有连接性 (至少一个顶点存在, 因为允许 `半垂悬边`)"""
         return self.has_any_vid([edge.src_vid, edge.dst_vid])
 
@@ -120,7 +120,7 @@ class DynGraph:
 
     """ ========== 基本操作 ========== """
 
-    def update_v(self, vertex: Vertex):
+    def update_v(self, vertex: DataVertex):
         """更新点信息"""
 
         self.v_entities[vertex.vid] = vertex
@@ -132,14 +132,14 @@ class DynGraph:
 
         return self
 
-    def update_v_batch(self, vertices: list[Vertex]):
+    def update_v_batch(self, vertices: list[DataVertex]):
         """批量更新点信息"""
 
         self.v_entities.update({v.vid: v for v in vertices})
 
         return self
 
-    def update_e(self, edge: Edge):
+    def update_e(self, edge: DataEdge):
         """更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
         self.e_entities[edge.eid] = edge
@@ -174,7 +174,7 @@ class DynGraph:
 
         return self
 
-    def update_e_batch(self, edges: list[Edge]):
+    def update_e_batch(self, edges: list[DataEdge]):
         """批量更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
         for edge in edges:

@@ -1,15 +1,13 @@
 from typing import override
 
 from executor.instr_ops.abc import InstrOperator
-from executor.instr_ops.factory import OperatorFactory
-from executor.matching_ctx.buckets.C_bucket import C_Bucket
-from executor.matching_ctx.buckets.T_bucket import T_Bucket
-from schema import Instruction, InstructionType
+from executor.matching_ctx.buckets import C_Bucket, T_Bucket
+from schema import Instruction
 from schema.basic import VarPrefix
+from utils import dbg
 from utils.dyn_graph import DynGraph
 
 
-@OperatorFactory.register(InstructionType.Intersect)
 class IntersectOperator(InstrOperator):
     """Intersect 指令算子"""
 
@@ -17,8 +15,10 @@ class IntersectOperator(InstrOperator):
     def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
         """执行指令"""
 
+        dbg.pprint_instr(instr)
+
         if instr.is_single_op():
-            var_prefix, _ = self.resolve_var(instr.single_op)
+            var_prefix, _var_name = self.resolve_var(instr.single_op)
             match var_prefix:
                 case VarPrefix.DbQueryTarget:
                     self.with_adj_set(instr)

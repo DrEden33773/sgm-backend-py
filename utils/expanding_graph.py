@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from functools import lru_cache
 
-from schema import Edge, Eid, Vertex, Vid
+from schema import DataEdge, DataVertex, Eid, Vid
 from utils.dyn_graph import DynGraph, VNode
 
 
@@ -22,10 +22,10 @@ class ExpandGraph:
     target_v_adj_table: dict[Vid, VNode] = field(default_factory=dict)
     """ `扩张终点` 的 `邻接表` """
 
-    dangling_e_entities: dict[Eid, Edge] = field(default_factory=dict)
+    dangling_e_entities: dict[Eid, DataEdge] = field(default_factory=dict)
     """ 垂悬边实体 """
 
-    target_v_entities: dict[Vid, Vertex] = field(default_factory=dict)
+    target_v_entities: dict[Vid, DataVertex] = field(default_factory=dict)
     """ 扩张终点实体 """
 
     def __post_init__(self):
@@ -43,7 +43,7 @@ class ExpandGraph:
         # 保留原图中的 `垂悬边`, 这样方便快速从 `ExpandGraph` 转为等效的 `DynGraph`
         return
 
-    def update_available_targets(self, target_vertices: list[Vertex]):
+    def update_available_targets(self, target_vertices: list[DataVertex]):
         """
         更新 `合法扩张终点`, 返回 `不合法扩张终点`
 
@@ -51,13 +51,13 @@ class ExpandGraph:
         """
 
         @lru_cache
-        def is_valid_target(v: Vertex):
+        def is_valid_target(v: DataVertex):
             for edge in self.dangling_e_entities.values():
                 if v.vid in (edge.src_vid, edge.dst_vid):
                     return True
 
-        legal_targets: set[Vertex] = set()
-        illegal_vertices: set[Vertex] = set()
+        legal_targets: set[DataVertex] = set()
+        illegal_vertices: set[DataVertex] = set()
         for v in target_vertices:
             if is_valid_target(v):
                 legal_targets.add(v)

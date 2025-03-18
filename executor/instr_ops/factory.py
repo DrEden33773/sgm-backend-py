@@ -1,6 +1,11 @@
 from typing import Type
 
 from executor.instr_ops.abc import InstrOperator
+from executor.instr_ops.foreach import ForeachOperator
+from executor.instr_ops.get_adj import GetAdjOperator
+from executor.instr_ops.init import InitOperator
+from executor.instr_ops.intersect import IntersectOperator
+from executor.instr_ops.report import ReportOperator
 from executor.matching_ctx import MatchingCtx
 from schema import Instruction, InstructionType
 from storage.abc import StorageAdapter
@@ -9,17 +14,13 @@ from storage.abc import StorageAdapter
 class OperatorFactory:
     """指令算子工厂"""
 
-    _operators: dict[InstructionType, Type[InstrOperator]] = {}
-
-    @classmethod
-    def register(cls, instr_type: InstructionType):
-        """注册指令算子"""
-
-        def decorator(operator_cls: Type[InstrOperator]) -> Type[InstrOperator]:
-            cls._operators[instr_type] = operator_cls
-            return operator_cls
-
-        return decorator
+    _operators: dict[InstructionType, Type[InstrOperator]] = {
+        InstructionType.Init: InitOperator,
+        InstructionType.Foreach: ForeachOperator,
+        InstructionType.GetAdj: GetAdjOperator,
+        InstructionType.Intersect: IntersectOperator,
+        InstructionType.Report: ReportOperator,
+    }
 
     @classmethod
     def create(

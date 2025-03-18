@@ -1,12 +1,11 @@
 from typing import override
 
 from executor.instr_ops.abc import InstrOperator
-from executor.instr_ops.factory import OperatorFactory
-from schema import Instruction, InstructionType
+from schema import Instruction
+from utils import dbg
 from utils.dyn_graph import DynGraph
 
 
-@OperatorFactory.register(InstructionType.Report)
 class ReportOperator(InstrOperator):
     """Report 指令算子"""
 
@@ -14,7 +13,9 @@ class ReportOperator(InstrOperator):
     def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
         """执行指令"""
 
-        f_pool = self.ctx.f_pool
+        dbg.pprint_instr(instr)
+
+        f_pool = self.ctx.F_pool
 
         # 更新结果
         for f_bucket in f_pool.values():

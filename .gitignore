@@ -13,3 +13,6 @@ wheels/
 .ruff_cache/
 
 llm-chat-history.md
+
+# .idea
+.idea/

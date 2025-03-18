@@ -5,6 +5,20 @@
         "BENU",
         "Danglable",
         "eids",
-        "Pylance"
+        "neomodel",
+        "networkx",
+        "pycache",
+        "Pylance",
+        "sqlmodel",
+        "venv"
+    ],
+    "sqltools.useNodeRuntime": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:backend-py}/data_graph.db",
+            "name": "子图匹配后端-测试数据集"
+        }
     ]
 }

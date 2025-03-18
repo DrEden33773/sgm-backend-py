@@ -1,12 +1,9 @@
 from dataclasses import dataclass, field
 from functools import lru_cache
 
-from executor.matching_ctx.buckets.A_bucket import A_Bucket
-from executor.matching_ctx.buckets.C_bucket import C_Bucket
-from executor.matching_ctx.buckets.f_bucket import F_Bucket
-from executor.matching_ctx.buckets.T_bucket import T_Bucket
+from executor.matching_ctx.buckets import A_Bucket, C_Bucket, T_Bucket, f_Bucket
 from executor.matching_ctx.type_aliases import PgEid, PgVid
-from schema import Edge, PlanData, Vertex
+from schema import DataEdge, PatternEdge, PatternVertex, PlanData
 from schema.basic import STR_TUPLE_SPLITTER
 from utils.dyn_graph import DynGraph
 
@@ -24,13 +21,13 @@ class MatchingCtx:
     plan_data: PlanData
     """ 执行计划 """
 
-    pattern_vs: dict[PgVid, Vertex] = field(default_factory=dict[PgVid, Vertex])
+    pattern_vs: dict[PgVid, PatternVertex] = field(default_factory=dict)
     """ 模式图点集 """
 
-    pattern_es: dict[PgEid, Edge] = field(default_factory=dict[PgEid, Edge])
+    pattern_es: dict[PgEid, PatternEdge] = field(default_factory=dict)
     """ 模式图边集 """
 
-    f_pool: dict[PgVid, F_Bucket] = field(default_factory=dict)
+    F_pool: dict[PgVid, f_Bucket] = field(default_factory=dict)
     """
     枚举目标 (f) 容器
     - { 点模式标签 pg_vid -> f_bucket } 
@@ -60,15 +57,20 @@ class MatchingCtx:
 
     """ ========== """
 
+    def init_f_pool(self, target_var: str):
+        """Init: 初始化 f_pool"""
+        key = resolve_var_name(target_var)
+        self.F_pool[key] = f_Bucket()
+
     def append_to_f_pool(self, target_var: str, matched_dg: DynGraph):
         """Init: 更新 f_pool 成功匹配部分"""
         key = resolve_var_name(target_var)
-        self.f_pool[key].append_matched(matched_dg)
+        self.F_pool[key].append_matched(matched_dg)
 
     def resolve_f_bucket(self, single_op: str):
         """GetAdj: 解析 f_bucket"""
         key = resolve_var_name(single_op)
-        return self.f_pool[key]
+        return self.F_pool[key]
 
     def update_A_pool(self, target_var: str, a_bucket: A_Bucket):
         """GetAdj: 更新 A_pool"""
@@ -100,10 +102,10 @@ class MatchingCtx:
         key = resolve_var_name(single_op)
         return self.C_pool[key]
 
-    def update_F_pool(self, target_var: str, f_bucket: F_Bucket):
+    def update_f_pool(self, target_var: str, f_bucket: f_Bucket):
         """Foreach: 更新 F_pool"""
         key = resolve_var_name(target_var)
-        self.f_pool[key] = f_bucket
+        self.F_pool[key] = f_bucket
 
     """ ========== """
 
@@ -123,11 +125,11 @@ class MatchingCtx:
         """批量获取模式图边"""
         return [self.pattern_es[eid] for eid in eids]
 
-    def get_pattern_e2v(self, e: Edge):
+    def get_pattern_e2v(self, e: DataEdge):
         """获取模式图边的两个顶点"""
         src, dst = self.pattern_es[e.eid].src_vid, self.pattern_es[e.eid].dst_vid
         return self.pattern_vs[src], self.pattern_vs[dst]
 
-    def get_pattern_e2v_batch(self, es: list[Edge]):
+    def get_pattern_e2v_batch(self, es: list[DataEdge]):
         """批量获取模式图边的两个顶点"""
         return [self.get_pattern_e2v(eid) for eid in es]

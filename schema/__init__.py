@@ -77,8 +77,8 @@ class Instruction:
 
 
 @dataclass
-class Vertex:
-    """顶点信息"""
+class PatternVertex:
+    """模式顶点信息"""
 
     vid: Vid
     label: Label
@@ -94,8 +94,20 @@ class Vertex:
 
 
 @dataclass
-class Edge:
-    """边信息"""
+class DataVertex:
+    """数据顶点"""
+
+    vid: Vid
+    label: Label
+    attr: Optional[int | float | str] = None
+
+    def __hash__(self) -> int:
+        return hash(self.vid)
+
+
+@dataclass
+class PatternEdge:
+    """模式边信息"""
 
     eid: Eid
     label: Label
@@ -113,23 +125,37 @@ class Edge:
 
 
 @dataclass
+class DataEdge:
+    """数据边"""
+
+    eid: Eid
+    label: Label
+    src_vid: Vid
+    dst_vid: Vid
+    attr: Optional[int | float | str] = None
+
+    def __hash__(self) -> int:
+        return hash(self.eid)
+
+
+@dataclass
 class PlanData:
     """执行计划 (详细数据)"""
 
     matching_order: list[str]
-    vertices: dict[Vid, Vertex]
-    edges: dict[Eid, Edge]
+    vertices: dict[Vid, PatternVertex]
+    edges: dict[Eid, PatternEdge]
     instructions: list[Instruction]
 
     @classmethod
     def from_plan_dict(cls, plan_dict: PlanDict):
         matching_order = plan_dict.get("matching_order", [])
         vertices = {
-            vid: Vertex.from_vertex_info(vid, info)
+            vid: PatternVertex.from_vertex_info(vid, info)
             for vid, info in plan_dict.get("vertices", {}).items()
         }
         edges = {
-            eid: Edge.from_edge_info(eid, info)
+            eid: PatternEdge.from_edge_info(eid, info)
             for eid, info in plan_dict.get("edges", {}).items()
         }
         instructions = [

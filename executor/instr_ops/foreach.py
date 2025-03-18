@@ -1,13 +1,12 @@
 from typing import override
 
 from executor.instr_ops.abc import InstrOperator
-from executor.instr_ops.factory import OperatorFactory
-from executor.matching_ctx.buckets.f_bucket import F_Bucket
-from schema import Instruction, InstructionType
+from executor.matching_ctx.buckets import f_Bucket
+from schema import Instruction
+from utils import dbg
 from utils.dyn_graph import DynGraph
 
 
-@OperatorFactory.register(InstructionType.Foreach)
 class ForeachOperator(InstrOperator):
     """Foreach 指令算子"""
 
@@ -15,6 +14,8 @@ class ForeachOperator(InstrOperator):
     def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
         """执行指令"""
 
+        dbg.pprint_instr(instr)
+
         C_bucket = self.ctx.resolve_C_pool(instr.single_op)
-        F_bucket = F_Bucket.from_C_bucket(C_bucket)
-        self.ctx.update_F_pool(instr.target_var, F_bucket)
+        f_bucket = f_Bucket.from_C_bucket(C_bucket)
+        self.ctx.update_f_pool(instr.target_var, f_bucket)
