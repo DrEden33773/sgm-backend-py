@@ -3,11 +3,19 @@ from enum import Enum
 
 from schema import DataEdge, DataVertex, Eid, Vid
 
-COMPLETELY_DANGLE_BASE = """\
+COMPLETELY_DANGLE_BASE = """
 Detected `completely-dangling edge`:
-    ? -[<eid: {}>]-> ?
-    
-Completely-dangling edge is NOT allowed.
+    ? -[eid: {}]-> ? \
+"""
+
+DANGLE_ON_SRC_BASE = """
+Detected `half-dangling edge`:
+    ? -[eid: {}]-> (vid: {}) \
+"""
+
+DANGLE_ON_DST_BASE = """
+Detected `half-dangling edge`:
+    (vid: {}) -[eid: {}]-> ? \
 """
 
 
@@ -62,22 +70,10 @@ class DynGraph:
     边实体 
     - { eid -> Edge }
     """
-
     adj_table: dict[Vid, VNode] = field(default_factory=dict)
     """ 
     邻接表 
     - { vid -> VNode }
-    """
-    half_dangling_v_e: dict[Vid, set[Eid]] = field(default_factory=dict)
-    """
-    半垂悬边集 (点索引, 索引的点, 一定是 `还没有添加进来的点`) 
-    - 一个点 可以连接 多个垂悬边
-    - { vid -> { eid } }
-    """
-    half_dangling_es: set[Eid] = field(default_factory=set)
-    """
-    半垂悬边集
-    - { eid }
     """
 
     """ ========== 底层功能 ========== """
@@ -110,8 +106,12 @@ class DynGraph:
         """边是否具有连接性 (至少一个顶点存在, 因为允许 `半垂悬边`)"""
         return self.has_any_vid([edge.src_vid, edge.dst_vid])
 
-    def get_connective_v_of_e(self, edge: DataEdge):
-        """获取边上的连接点 (至少一个顶点存在, 因为允许 `半垂悬边`)"""
+    def is_e_full_connective(self, edge: DataEdge):
+        """边是否具有连接性 (两个顶点都存在)"""
+        return self.has_all_vids([edge.src_vid, edge.dst_vid])
+
+    def get_first_connective_vid_of_e(self, edge: DataEdge):
+        """获取边上的第一个 `可连接点` 的 `vid`"""
 
         if self.has_vid(edge.src_vid):
             return edge.src_vid
@@ -136,18 +136,6 @@ class DynGraph:
 
         self.v_entities[vertex.vid] = vertex
         self.adj_table.setdefault(vertex.vid, VNode())
-
-        # 给相关的 dangling_eid 提升
-        removed_dangling_es = self.half_dangling_v_e.pop(vertex.vid, None)
-        if removed_dangling_es:
-            self.half_dangling_es -= removed_dangling_es
-            # 更新 adj_table
-            for e in removed_dangling_es:
-                edge = self.e_entities[e]
-                if edge.src_vid == vertex.vid:
-                    self.adj_table[vertex.vid].e_out.add(e)
-                else:
-                    self.adj_table[vertex.vid].e_in.add(e)
 
         return self
 
@@ -174,25 +162,15 @@ class DynGraph:
 
         if self.has_vid(edge.src_vid):
             # src_v -[edge]-> ? (? = unjoined `dst_v``)
-            self.half_dangling_v_e.setdefault(edge.dst_vid, set()).add(edge.eid)
-            self.half_dangling_es.add(edge.eid)
-
-            src_v = self.adj_table.setdefault(edge.src_vid, VNode())
-            src_v.e_out.add(edge.eid)
+            raise RuntimeError(DANGLE_ON_DST_BASE.format(edge.src_vid, edge.eid))
 
         elif self.has_vid(edge.dst_vid):
             # ? -[edge]-> dst_v (? = unjoined `src_v`)
-            self.half_dangling_v_e.setdefault(edge.src_vid, set()).add(edge.eid)
-            self.half_dangling_es.add(edge.eid)
-
-            dst_v = self.adj_table.setdefault(edge.dst_vid, VNode())
-            dst_v.e_in.add(edge.eid)
+            raise RuntimeError(DANGLE_ON_SRC_BASE.format(edge.dst_vid, edge.eid))
 
         else:
             # ? -[edge]-> ?
             raise RuntimeError(COMPLETELY_DANGLE_BASE.format(edge.eid))
-
-        return self
 
     def update_e_batch(self, edges: list[DataEdge]):
         """批量更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
@@ -207,22 +185,11 @@ class DynGraph:
         if not self.has_eid(eid):
             return
 
-        del_e = self.e_entities[eid]
-
         if not has_handled_adj_table:
-            # 摘除关联边 (从邻接表中移除, 但是不删除)
+            # 摘除关联边
             for v in self.adj_table.values():
                 v.e_in.discard(eid)
                 v.e_out.discard(eid)
-
-        # 处理 half-dangling-v-e (仅有两种可能: 边的两个顶点)
-        if del_e.src_vid in self.half_dangling_v_e:
-            self.half_dangling_v_e[del_e.src_vid].discard(eid)
-        if del_e.dst_vid in self.half_dangling_v_e:
-            self.half_dangling_v_e[del_e.dst_vid].discard(eid)
-
-        # 处理 half-dangling-es (边本身)
-        self.half_dangling_es.discard(eid)
 
         # 删除实体映射
         self.e_entities.pop(eid, None)
@@ -233,64 +200,6 @@ class DynGraph:
         """批量删除边信息"""
         for eid in eids:
             self.remove_e(eid)
-
-        return self
-
-    def remove_v(
-        self, vid: Vid, level: RemoveVCascadeLevel = RemoveVCascadeLevel.SelfOnly
-    ):
-        """删除点信息 (可指定级联级别)"""
-
-        if not self.has_vid(vid):
-            return
-
-        self.v_entities.pop(vid)
-        deleted = self.adj_table.pop(vid)
-
-        # 把相关的 edge 全部设为 half-dangling
-        for del_e in deleted.e_in | deleted.e_out:
-            self.half_dangling_v_e.setdefault(vid, set()).add(del_e)
-            self.half_dangling_es.add(del_e)
-
-        # 摘除关联边 (从邻接表中移除, 但是不删除)
-        for v in self.adj_table.values():
-            v.e_in -= deleted.e_out
-            v.e_out -= deleted.e_in
-
-        if level == RemoveVCascadeLevel.WithEdges:
-            # 删除关联边
-            for del_e in deleted.e_in | deleted.e_out:
-                self.remove_e(del_e, has_handled_adj_table=True)
-
-        return self
-
-    def remove_v_batch_same_level(
-        self,
-        vids: list[Vid],
-        level: RemoveVCascadeLevel = RemoveVCascadeLevel.SelfOnly,
-    ):
-        """批量删除点信息 (可指定级联级别)"""
-
-        for vid in vids:
-            self.remove_v(vid, level)
-
-        return self
-
-    def remove_v_batch_diff_level(
-        self,
-        vids: list[Vid],
-        levels: list[RemoveVCascadeLevel],
-    ):
-        """批量删除点信息 (可指定不同级联级别)"""
-
-        # len(vids) <= len(levels) 时, 以 vids 为准
-        for vid, level in zip(vids, levels):
-            self.remove_v(vid, level)
-
-        # 否则广播, 没匹配到的 vid 统统用 RemoveVCascadeLevel.SelfOnly
-        if len(vids) > len(levels):
-            for vid in vids[len(levels) :]:
-                self.remove_v(vid, RemoveVCascadeLevel.SelfOnly)
 
         return self
 

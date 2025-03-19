@@ -114,7 +114,7 @@ class A_Bucket:
 
                 for edge in edges:
                     # 挑选出 `可连接的` 的边
-                    if connective_e_vid := dg.get_connective_v_of_e(edge):
+                    if connective_e_vid := dg.get_first_connective_vid_of_e(edge):
                         dangling_e_vid = (
                             edge.dst_vid
                             if connective_e_vid == edge.src_vid
@@ -132,9 +132,10 @@ class A_Bucket:
                     continue
 
                 # 指定位置, 构造 `扩展图`
-                new_dg = deepcopy(dg).update_e_batch(connective_edges)
+                expanding_dg = ExpandGraph(deepcopy(dg))
+                expanding_dg.update_available_dangling_edges(connective_edges)
                 self.next_pat_grouped_expanding.setdefault(next_pat_vid, []).append(
-                    ExpandGraph(new_dg)
+                    expanding_dg
                 )
 
         self.all_matched.clear()
