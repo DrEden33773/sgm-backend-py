@@ -1,4 +1,5 @@
 from enum import StrEnum, auto
+from operator import eq, ge, gt, le, lt, ne
 from typing import Any
 
 STR_TUPLE_SPLITTER = "^"
@@ -11,6 +12,21 @@ class Op(StrEnum):
     Ge = ">="
     Lt = "<"
     Le = "<="
+
+    def to_operator(self):
+        match self:
+            case Op.Eq:
+                return eq
+            case Op.Ne:
+                return ne
+            case Op.Gt:
+                return gt
+            case Op.Ge:
+                return ge
+            case Op.Lt:
+                return lt
+            case Op.Le:
+                return le
 
 
 class AttrType(StrEnum):

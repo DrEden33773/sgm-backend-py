@@ -19,6 +19,16 @@ class SQLiteStorageAdapter(StorageAdapter):
 
     @override
     @lru_cache
+    def get_v(self, vid: str) -> DataVertex:
+        query = select(DBVertex).where(DBVertex.vid == vid)
+        with Session(self.engine) as session:
+            db_vertex = session.exec(query).first()
+        if not db_vertex:
+            raise RuntimeError(f"DataVertex (vid: {vid}) not found.")
+        return DataVertex(vid=db_vertex.vid, label=db_vertex.label, attr=db_vertex.attr)
+
+    @override
+    @lru_cache
     def load_v(self, v_label: Label) -> list[DataVertex]:
         query = select(DBVertex).where(DBVertex.label == v_label)
         with Session(self.engine) as session:

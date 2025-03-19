@@ -1,10 +1,40 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
 
-from executor.matching_ctx.type_aliases import DgEdge, DgEid, PgEid, PgVid
-from schema import DataVertex
+from executor.matching_ctx.type_aliases import DgEdge, DgVid, PgEid, PgVid
+from schema import DataEdge, DataVertex, PatternVertex
+from storage.abc import StorageAdapter
 from utils.dyn_graph import DynGraph
 from utils.expanding_graph import ExpandGraph
+
+
+def does_data_v_satisfy_pattern(
+    dg_vid: DgVid,
+    pat_vid: PgEid,
+    pattern_vs: dict[PgVid, PatternVertex],
+    storage_adapter: StorageAdapter,
+) -> bool:
+    pattern_v = pattern_vs[pat_vid]
+    data_v = storage_adapter.get_v(dg_vid)
+
+    # 比较标签
+    if pattern_v.label != data_v.label:
+        return False
+
+    # 比较属性
+    if not pattern_v.attr:
+        # 模式点未规定属性
+        return True
+    elif not data_v.attr:
+        # 模式点规定了属性, 但是数据点没有属性
+        return False
+    else:
+        operator = pattern_v.attr.op.to_operator()
+        data_v_attr_value = data_v.attr
+        pattern_v_attr_value = pattern_v.attr.value
+        if type(data_v_attr_value) is not type(pattern_v_attr_value):
+            return False
+        return operator(data_v_attr_value, pattern_v_attr_value)
 
 
 @dataclass
@@ -41,56 +71,74 @@ class f_Bucket:
 class A_Bucket:
     """邻接组合 (A) 桶"""
 
+    curr_pat_vid: PgVid
     all_matched: list[DynGraph] = field(default_factory=list)
-    appeared_eids: set[DgEid] = field(default_factory=set)
 
-    dst_pat_grouped_edges: dict[PgEid, list[DgEdge]] = field(default_factory=dict)
-    dst_pat_grouped_expanding: dict[PgEid, list[ExpandGraph]] = field(
+    next_pat_grouped_edges: dict[PgVid, set[DgEdge]] = field(default_factory=dict)
+    next_pat_grouped_expanding: dict[PgVid, list[ExpandGraph]] = field(
         default_factory=dict
     )
 
+    @staticmethod
+    def is_dg_v_the_pattern_of(dg_vid: DgVid, pat_vid: PgVid):
+        pass
+
     @classmethod
-    def from_f_bucket(cls, f_bucket: f_Bucket):
-        return cls(f_bucket.all_matched)
+    def from_f_bucket(cls, curr_pat_vid: PgVid, f_bucket: f_Bucket):
+        return cls(curr_pat_vid, f_bucket.all_matched)
 
-    def __post_init__(self):
-        # 立刻更新 `appeared_eids`
-        for dg in self.all_matched:
-            self.appeared_eids.update(dg.e_entities.keys())
+    def with_new_edges(self, new_edges: list[DgEdge], next_pat_vid: PgEid):
+        """添加新边"""
 
-    def with_new_edges(self, new_edges: list[DgEdge], dst_pat_vid: PgEid):
-        """添加新边 (不在 incoming_eids 中)"""
-
-        valid_new_edges = [e for e in new_edges if e.eid not in self.appeared_eids]
-        self.dst_pat_grouped_edges.setdefault(dst_pat_vid, []).extend(valid_new_edges)
-
-        # 记得更新 `appeared_eids`
-        self.appeared_eids.update(e.eid for e in valid_new_edges)
-
+        curr_group = self.next_pat_grouped_edges.setdefault(next_pat_vid, set())
+        curr_group.update(new_edges)
         return self
 
-    def select_connective_edges_and_graphs(self):
+    def select_connective_edges_and_graphs(
+        self,
+        pattern_vs: dict[PgVid, PatternVertex],
+        storage_adapter: StorageAdapter,
+    ):
         """选出 `可连接的边` 和 `被连接的图` (内部求交)"""
 
-        if not self.all_matched or not self.dst_pat_grouped_edges:
+        if not self.all_matched or not self.next_pat_grouped_edges:
             return
 
         # 迭代 `已匹配` 的数据图
         for dg in self.all_matched:
+            is_curr_dg_expandable = False
+
             # 分组迭代 `新增边`
-            for dst_pat, edges in self.dst_pat_grouped_edges.items():
-                # 挑选出 `可连接边`
-                connective_edges = [
-                    edge for edge in edges if dg.is_edge_connective(edge)
-                ]
+            for next_pat_vid, edges in self.next_pat_grouped_edges.items():
+                connective_edges: list[DataEdge] = []
+
+                for edge in edges:
+                    # 挑选出 `可连接的` 的边
+                    if connective_e_vid := dg.get_connective_v_of_e(edge):
+                        dangling_e_vid = (
+                            edge.dst_vid
+                            if connective_e_vid == edge.src_vid
+                            else edge.src_vid
+                        )
+                        # 挑选 `可连接到下一个模式点` 的边
+                        if does_data_v_satisfy_pattern(
+                            dangling_e_vid, next_pat_vid, pattern_vs, storage_adapter
+                        ):
+                            connective_edges.append(edge)
+                            is_curr_dg_expandable = True
+
+                # 如果当前匹配 `不可扩张`, 直接跳过
+                if not is_curr_dg_expandable:
+                    continue
+
                 # 指定位置, 构造 `扩展图`
                 new_dg = deepcopy(dg).update_e_batch(connective_edges)
-                self.dst_pat_grouped_expanding.setdefault(dst_pat, []).append(
+                self.next_pat_grouped_expanding.setdefault(next_pat_vid, []).append(
                     ExpandGraph(new_dg)
                 )
 
         self.all_matched.clear()
-        self.dst_pat_grouped_edges.clear()
+        self.next_pat_grouped_edges.clear()
 
 
 @dataclass
@@ -105,7 +153,7 @@ class C_Bucket:
         cls, A_bucket: A_Bucket, curr_pat_vid: PgVid, loaded_vertices: list[DataVertex]
     ):
         # 从 A_bucket 中弹出当前分组
-        curr_group = A_bucket.dst_pat_grouped_expanding.pop(curr_pat_vid, [])
+        curr_group = A_bucket.next_pat_grouped_expanding.pop(curr_pat_vid, [])
         if not curr_group:
             return cls()
 
@@ -154,15 +202,15 @@ class T_Bucket:
 
     @classmethod
     def build_from_A_A(cls, left: A_Bucket, right: A_Bucket, target_pat_vid: PgVid):
-        left_group = left.dst_pat_grouped_expanding.pop(target_pat_vid, [])
-        right_group = right.dst_pat_grouped_expanding.pop(target_pat_vid, [])
+        left_group = left.next_pat_grouped_expanding.pop(target_pat_vid, [])
+        right_group = right.next_pat_grouped_expanding.pop(target_pat_vid, [])
         expanding_graphs = cls.expand_edges_on_same_vertices(left_group, right_group)
         return cls(target_pat_vid, expanding_graphs)
 
     @classmethod
     def build_from_T_A(cls, left: "T_Bucket", right: A_Bucket):
         left_group = left.expanding_graphs
-        right_group = right.dst_pat_grouped_expanding.pop(left.target_pat_vid, [])
+        right_group = right.next_pat_grouped_expanding.pop(left.target_pat_vid, [])
 
         # 事实上, 这里可以肯定地说, `T_Bucket` 就是不完整的, 而 `A_Bucket` 就是未被利用的
         # 所以显式指定参数位置

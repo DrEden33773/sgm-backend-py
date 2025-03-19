@@ -6,6 +6,13 @@ from storage.abc import StorageAdapter
 
 
 class Neo4jStorageAdapter(StorageAdapter):
+    """Neo4j 存储适配器"""
+
+    @override
+    @lru_cache
+    def get_v(self, vid: str) -> DataVertex:
+        raise NotImplementedError
+
     @override
     @lru_cache
     def load_v(self, v_label: Label) -> list[DataVertex]:

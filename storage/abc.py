@@ -1,11 +1,20 @@
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
-from schema import DataEdge, DataVertex, Label, PatternAttr
+from schema import DataEdge, DataVertex, Label, PatternAttr, Vid
 
 
 class StorageAdapter(ABC):
     """`存储适配器` 抽象基类"""
+
+    @abstractmethod
+    @lru_cache
+    def get_v(self, vid: Vid) -> DataVertex:
+        """
+        ## Init
+
+        根据 `vid` 找到顶点
+        """
 
     @abstractmethod
     @lru_cache

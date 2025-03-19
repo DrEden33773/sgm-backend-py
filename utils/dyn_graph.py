@@ -106,9 +106,20 @@ class DynGraph:
     def get_e_from_eid(self, eid: Eid):
         return self.e_entities.get(eid)
 
-    def is_edge_connective(self, edge: DataEdge):
+    def is_e_connective(self, edge: DataEdge):
         """边是否具有连接性 (至少一个顶点存在, 因为允许 `半垂悬边`)"""
         return self.has_any_vid([edge.src_vid, edge.dst_vid])
+
+    def get_connective_v_of_e(self, edge: DataEdge):
+        """获取边上的连接点 (至少一个顶点存在, 因为允许 `半垂悬边`)"""
+
+        if self.has_vid(edge.src_vid):
+            return edge.src_vid
+
+        if self.has_vid(edge.dst_vid):
+            return edge.dst_vid
+
+        return None
 
     def get_vid_set(self, ignore: set[Vid] = set()):
         """获取点集合"""
