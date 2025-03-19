@@ -1,5 +1,3 @@
-from typing import Type
-
 from executor.instr_ops.abc import InstrOperator
 from executor.instr_ops.foreach import ForeachOperator
 from executor.instr_ops.get_adj import GetAdjOperator
@@ -14,7 +12,7 @@ from storage.abc import StorageAdapter
 class OperatorFactory:
     """指令算子工厂"""
 
-    _operators: dict[InstructionType, Type[InstrOperator]] = {
+    _operators: dict[InstructionType, type[InstrOperator]] = {
         InstructionType.Init: InitOperator,
         InstructionType.Foreach: ForeachOperator,
         InstructionType.GetAdj: GetAdjOperator,
