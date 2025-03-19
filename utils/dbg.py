@@ -16,7 +16,7 @@ def print_header(str: str, splitter: str = "=", rep_times: int = WIDTH // 2) -> 
 
 
 def pprint(obj: object):
-    pp.pprint(obj, indent=1, width=WIDTH, sort_dicts=False, compact=False)
+    pp.pprint(obj, width=WIDTH, sort_dicts=False, compact=False)
 
 
 def pprint_instr(instr: Instruction):

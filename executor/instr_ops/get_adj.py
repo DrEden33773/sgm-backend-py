@@ -1,18 +1,14 @@
-from typing import Callable, override
+from typing import override
 
 from executor.instr_ops.abc import InstrOperator
-from executor.matching_ctx import A_Bucket, MatchingCtx
-from executor.matching_ctx.type_aliases import DgVid, PgEid
+from executor.matching_ctx import A_Bucket
 from schema import Instruction
-from storage.abc import StorageAdapter
 from utils import dbg
 from utils.dyn_graph import DynGraph
 
 
 class GetAdjOperator(InstrOperator):
     """GetAdj 指令算子"""
-
-    type PatternSatisfier = Callable[[DgVid, PgEid, MatchingCtx, StorageAdapter], bool]
 
     @override
     def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):

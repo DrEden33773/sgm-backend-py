@@ -102,15 +102,25 @@ class A_Bucket:
 
         # 迭代 `已匹配` 的数据图
         for dg in self.all_matched:
-            is_curr_dg_expandable = False
-
             # 分组迭代 `新增边`
             for next_pat_vid, edges in self.next_pat_grouped_edges.items():
+                is_curr_dg_expandable = False
                 next_vid_grouped_connective_edges: dict[DgVid, list[DataEdge]] = {}
 
                 for edge in edges:
-                    # 挑选出 `可连接的` 的边
-                    if connective_e_vid := dg.get_first_connective_vid_of_e(edge):
+                    # 如果这条边已经存在, 直接跳过
+                    if edge.eid in dg.e_entities:
+                        continue
+
+                    # 挑选出 `可连接的` 的边 (同时这条边连接的点, 必须满足 curr_pat_vid 的模式约束)
+                    if (
+                        connective_e_vid := dg.get_first_connective_vid_of_e(edge)
+                    ) and does_data_v_satisfy_pattern(
+                        connective_e_vid,
+                        self.curr_pat_vid,
+                        pattern_vs,
+                        storage_adapter,
+                    ):
                         dangling_e_vid = (
                             edge.dst_vid
                             if connective_e_vid == edge.src_vid
@@ -213,7 +223,7 @@ class T_Bucket:
         left_group = left.expanding_graphs
         right_group = right.next_pat_grouped_expanding.pop(left.target_pat_vid, [])
 
-        # 事实上, 这里可以肯定地说, `T_Bucket` 就是不完整的, 而 `A_Bucket` 就是未被利用的
+        # 当两者存在公共点时, 可以肯定地说, `T_Bucket` 就是不完整的, 而 `A_Bucket` 就是未被利用的
         # 所以显式指定参数位置
         expanding_graphs = cls.expand_edges_on_same_vertices(
             potential_incomplete_group=left_group, potential_unused_group=right_group
