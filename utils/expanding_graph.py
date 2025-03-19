@@ -40,10 +40,9 @@ class ExpandGraph:
         for e in dangling_es:
             self.dangling_e_entities[e.eid] = e
 
-        # 保留原图中的 `垂悬边`, 这样方便快速从 `ExpandGraph` 转为等效的 `DynGraph`
         return
 
-    def update_available_targets(self, target_vertices: list[DataVertex]):
+    def update_available_target_vertices(self, target_vertices: list[DataVertex]):
         """
         更新 `合法扩张终点`, 返回 `不合法扩张终点`
 
@@ -66,6 +65,10 @@ class ExpandGraph:
 
         self.target_v_entities.update({v.vid: v for v in legal_targets})
 
+        # 千万不要更新 `dyn_graph` 中的 `点`
+        # 因为这个函数的目的, 是 `保留` targets 连接的 `图模式`
+        # 更新 `dyn_graph` 交给 `to_dyn_graph_cloned` 来做
+
         for dangling_e in self.dangling_e_entities:
             e = self.dangling_e_entities[dangling_e]
             if e.src_vid in self.target_v_entities:
@@ -75,21 +78,8 @@ class ExpandGraph:
 
         return illegal_vertices
 
-    def to_dyn_graph_emplace(self):
-        if not self.target_v_entities:
-            return self.dyn_graph
-
-        # 这里只需要更新点, 因为 `垂悬边` 并没有从 `dyn_graph` 中摘除
-        self.dyn_graph.update_v_batch(list(self.target_v_entities.values()))
-        return self.dyn_graph
-
     def to_dyn_graph_cloned(self):
-        if not self.target_v_entities:
-            return deepcopy(self.dyn_graph)
-
         new_dyn_graph = deepcopy(self.dyn_graph)
-
-        # 这里只需要更新点, 因为 `垂悬边` 并没有从 `dyn_graph` 中摘除
         new_dyn_graph.update_v_batch(list(self.target_v_entities.values()))
         return new_dyn_graph
 

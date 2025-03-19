@@ -70,7 +70,7 @@ class DynGraph:
     """
     half_dangling_v_e: dict[Vid, set[Eid]] = field(default_factory=dict)
     """
-    半垂悬边集 (点索引) 
+    半垂悬边集 (点索引, 索引的点, 一定是 `还没有添加进来的点`) 
     - 一个点 可以连接 多个垂悬边
     - { vid -> { eid } }
     """
@@ -135,18 +135,27 @@ class DynGraph:
         """更新点信息"""
 
         self.v_entities[vertex.vid] = vertex
+        self.adj_table.setdefault(vertex.vid, VNode())
 
         # 给相关的 dangling_eid 提升
         removed_dangling_es = self.half_dangling_v_e.pop(vertex.vid, None)
         if removed_dangling_es:
             self.half_dangling_es -= removed_dangling_es
+            # 更新 adj_table
+            for e in removed_dangling_es:
+                edge = self.e_entities[e]
+                if edge.src_vid == vertex.vid:
+                    self.adj_table[vertex.vid].e_out.add(e)
+                else:
+                    self.adj_table[vertex.vid].e_in.add(e)
 
         return self
 
     def update_v_batch(self, vertices: list[DataVertex]):
         """批量更新点信息"""
 
-        self.v_entities.update({v.vid: v for v in vertices})
+        for vertex in vertices:
+            self.update_v(vertex)
 
         return self
 
@@ -164,16 +173,16 @@ class DynGraph:
             return self
 
         if self.has_vid(edge.src_vid):
-            # src_v -[edge]-> ?
-            self.half_dangling_v_e.setdefault(edge.src_vid, set()).add(edge.eid)
+            # src_v -[edge]-> ? (? = unjoined `dst_v``)
+            self.half_dangling_v_e.setdefault(edge.dst_vid, set()).add(edge.eid)
             self.half_dangling_es.add(edge.eid)
 
             src_v = self.adj_table.setdefault(edge.src_vid, VNode())
             src_v.e_out.add(edge.eid)
 
         elif self.has_vid(edge.dst_vid):
-            # ? -[edge]-> dst_v
-            self.half_dangling_v_e.setdefault(edge.dst_vid, set()).add(edge.eid)
+            # ? -[edge]-> dst_v (? = unjoined `src_v`)
+            self.half_dangling_v_e.setdefault(edge.src_vid, set()).add(edge.eid)
             self.half_dangling_es.add(edge.eid)
 
             dst_v = self.adj_table.setdefault(edge.dst_vid, VNode())
@@ -207,8 +216,10 @@ class DynGraph:
                 v.e_out.discard(eid)
 
         # 处理 half-dangling-v-e (仅有两种可能: 边的两个顶点)
-        self.half_dangling_v_e[del_e.src_vid].discard(eid)
-        self.half_dangling_v_e[del_e.dst_vid].discard(eid)
+        if del_e.src_vid in self.half_dangling_v_e:
+            self.half_dangling_v_e[del_e.src_vid].discard(eid)
+        if del_e.dst_vid in self.half_dangling_v_e:
+            self.half_dangling_v_e[del_e.dst_vid].discard(eid)
 
         # 处理 half-dangling-es (边本身)
         self.half_dangling_es.discard(eid)

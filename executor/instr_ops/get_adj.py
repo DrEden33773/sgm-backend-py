@@ -27,7 +27,7 @@ class GetAdjOperator(InstrOperator):
         f_bucket = self.ctx.resolve_f_bucket(instr.single_op)
         A_bucket = A_Bucket.from_f_bucket(curr_pat_vid, f_bucket)
 
-        # 按照 `终点的模式`, `分组` 加载边
+        # 按照 `下一个点的模式`, `分组` 加载边
         for pattern_e in pattern_es:
             label, attr = pattern_e.label, pattern_e.attr
 

@@ -20,7 +20,8 @@ class TriangleDgBuilder:
             DataEdge("a", EDGE, "2", "3"),
             DataEdge("c", EDGE, "3", "5"),
             DataEdge("b", EDGE, "5", "2"),
-            DataEdge("d", EDGE, "5", "4"),
+            DataEdge("e", EDGE, "2", "4"),
+            DataEdge("d", EDGE, "4", "5"),
         ]
 
         self.db_vertices = [Vertex(vid=v.vid, label=v.label) for v in vertices]

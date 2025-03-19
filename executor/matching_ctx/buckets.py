@@ -52,7 +52,7 @@ class f_Bucket:
 
         # 无需 `分裂式` 枚举, 直接导出
         if not C_bucket.need_further_enumeration:
-            all_matched = [g.to_dyn_graph_emplace() for g in C_bucket.all_expanded]
+            all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
             return cls(all_matched)
 
         # 需要 `分裂式` 枚举
@@ -161,7 +161,7 @@ class C_Bucket:
 
         for expanding in curr_group:
             # 与给定点集 `loaded_vertices` 求交
-            expanding.update_available_targets(loaded_vertices)
+            expanding.update_available_target_vertices(loaded_vertices)
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
@@ -178,7 +178,7 @@ class C_Bucket:
 
         for expanding in T_bucket.expanding_graphs:
             # 与给定点集 `loaded_vertices` 求交
-            expanding.update_available_targets(loaded_vertices)
+            expanding.update_available_target_vertices(loaded_vertices)
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
