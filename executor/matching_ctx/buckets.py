@@ -215,7 +215,7 @@ class T_Bucket:
     def build_from_A_A(cls, left: A_Bucket, right: A_Bucket, target_pat_vid: PgVid):
         left_group = left.next_pat_grouped_expanding.pop(target_pat_vid, [])
         right_group = right.next_pat_grouped_expanding.pop(target_pat_vid, [])
-        expanding_graphs = cls.expand_edges_on_same_vertices(left_group, right_group)
+        expanding_graphs = cls.expand_edges_of_two(left_group, right_group)
         return cls(target_pat_vid, expanding_graphs)
 
     @classmethod
@@ -225,31 +225,17 @@ class T_Bucket:
 
         # 当两者存在公共点时, 可以肯定地说, `T_Bucket` 就是不完整的, 而 `A_Bucket` 就是未被利用的
         # 所以显式指定参数位置
-        expanding_graphs = cls.expand_edges_on_same_vertices(
+        expanding_graphs = cls.expand_edges_of_two(
             potential_incomplete_group=left_group, potential_unused_group=right_group
         )
         return cls(left.target_pat_vid, expanding_graphs)
 
     @staticmethod
-    def expand_edges_on_same_vertices(
+    def expand_edges_of_two(
         potential_unused_group: list[ExpandGraph],
         potential_incomplete_group: list[ExpandGraph],
     ):
-        """
-        ## 在共同点上, 逐位置扩张边
-
-        ### 目的
-
-        把 `未被利用的` 垂悬边, 尝试连接在 `更年轻` 的图上
-
-        ### 说明
-
-        更短的列表中的图, 经由 `Foreach` 迭代的次数 `更少`
-
-        不难发现: `Foreach` 的迭代次数, 正比于, 对应 `依赖变量` 的年龄
-
-        也就说明, 其中未被 `利用 (连接)` 的 `垂悬边` 存在的概率更大
-        """
+        """分 `有公共点` 和 `无公共点`, 将两张图 `枚举式` 的拓展成新图"""
 
         result: list[ExpandGraph] = []
 
@@ -259,6 +245,7 @@ class T_Bucket:
 
         for outer in outer_:
             for inner in inner_:
+                # 先在 `点` 上取交集
                 if not (outer.get_vid_set() & inner.get_vid_set()):
                     # 没有共同点, 属于另一种算法
                     unions = ExpandGraph.union_then_intersect_on_connective_v(
@@ -266,8 +253,6 @@ class T_Bucket:
                     )
                     result.extend(unions)
                     continue
-
-                # 先在 `点` 上取交集
 
                 # 虽然理论上来说 outer 是 unused 概率更大, 但是还是要严格的判断
                 # 判断逻辑: 谁是子集, 谁就是 unused
@@ -277,7 +262,7 @@ class T_Bucket:
 
                 # 再对共同点的 `边`, 取并集, 进行扩张
                 # 注意, 这里会按照 `unused` 边的数量, 拷贝多份 `incomplete` 图
-                # 每份 incomplete 图, 都会连接一条 unused 边
+                # 每份 incomplete 图, 都会连接一组 unused 边
                 unions = ExpandGraph.intersect_then_union_on_same_v(unused, incomplete)
                 result.extend(unions)
 

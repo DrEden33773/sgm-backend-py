@@ -33,6 +33,19 @@ class ExpandGraph:
         self.get_vid_set = self.dyn_graph.get_vid_set
         self.get_v_count = self.dyn_graph.get_v_count
 
+    def group_dangling_e_by_pending_v(self):
+        """按照 `未连接的点` 对 `半垂悬边` 进行分组"""
+
+        dangling_e_grouped: dict[DgVid, list[DataEdge]] = {}
+
+        for dangling_e in self.dangling_e_entities.values():
+            if self.dyn_graph.has_vid(dangling_e.src_vid):
+                dangling_e_grouped.setdefault(dangling_e.dst_vid, []).append(dangling_e)
+            else:
+                dangling_e_grouped.setdefault(dangling_e.src_vid, []).append(dangling_e)
+
+        return dangling_e_grouped
+
     def update_available_dangling_edges(self, dangling_edges: list[DataEdge]):
         """
         更新 `合法半垂悬边`, 返回 `不合法半垂悬边`
@@ -117,8 +130,9 @@ class ExpandGraph:
         potential_unused: "ExpandGraph", potential_incomplete: "ExpandGraph"
     ) -> list["ExpandGraph"]:
         """
-        注意, 这里会按照 `unused` 边的数量, 拷贝多份 `incomplete` 图
-        每份 incomplete 图, 都会连接一条 unused 边
+        先确认两张图是否有 `公共点`
+
+        有的话, 就试图把 `预期可以连在一起` 的 `半垂悬边` 连接起来
         """
 
         result: list["ExpandGraph"] = []
@@ -136,10 +150,17 @@ class ExpandGraph:
             # 交换位置
             unused, incomplete = incomplete, unused
 
+        grouped_incomplete_dangling_es = incomplete.group_dangling_e_by_pending_v()
+
+        # 注意, dangling_e 与 `incomplete` 中的任一 `dangling_e` 有 `预期的共同点` 时, 才考虑合并
         for dangling_e in unused.dangling_e_entities.values():
-            new_expanding_dg = deepcopy(incomplete)
-            new_expanding_dg.update_available_dangling_edges([dangling_e])
-            result.append(new_expanding_dg)
+            for expected_vid in grouped_incomplete_dangling_es:
+                if expected_vid not in (dangling_e.src_vid, dangling_e.dst_vid):
+                    continue
+                # 每次合并, 直接开一张新图
+                new_expanding_dg = deepcopy(incomplete)
+                new_expanding_dg.update_available_dangling_edges([dangling_e])
+                result.append(new_expanding_dg)
 
         return result
 
@@ -177,6 +198,7 @@ class ExpandGraph:
         # 遍历两图的 `半垂悬边`, 选出那些可以相互连接的边
         for l_edge in left_expand_graph.dangling_e_entities.values():
             for r_edge in right_expand_graph.dangling_e_entities.values():
+                # 每次合并, 直接开一张新图
                 if l_edge.src_vid in (
                     r_edge.src_vid,
                     r_edge.dst_vid,
@@ -184,6 +206,15 @@ class ExpandGraph:
                     expanding_graph = ExpandGraph(new_dyn_graph)
                     expanding_graph.update_available_dangling_edges([l_edge, r_edge])
                     dst_v_grouped_results.setdefault(r_edge.dst_vid, []).append(
+                        expanding_graph
+                    )
+                elif l_edge.dst_vid in (
+                    r_edge.src_vid,
+                    r_edge.dst_vid,
+                ):
+                    expanding_graph = ExpandGraph(new_dyn_graph)
+                    expanding_graph.update_available_dangling_edges([l_edge, r_edge])
+                    dst_v_grouped_results.setdefault(r_edge.src_vid, []).append(
                         expanding_graph
                     )
 
