@@ -51,7 +51,7 @@ class ExecEngine:
         return result
 
     @staticmethod
-    def deserialize_json(plan_json: str):
+    def dbg_deserialize_json(plan_json: str):
         plan_json_raw = json.loads(plan_json)
         plan_dict = cast(PlanDict, plan_json_raw)
         plan_data = PlanData.from_plan_dict(plan_dict)
