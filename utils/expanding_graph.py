@@ -2,6 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from functools import lru_cache
 
+from executor.matching_ctx.type_aliases import DgVid
 from schema import DataEdge, DataVertex, Eid, Vid
 from utils.dyn_graph import DynGraph, VNode
 
@@ -114,7 +115,7 @@ class ExpandGraph:
     @staticmethod
     def intersect_then_union_on_same_v(
         potential_unused: "ExpandGraph", potential_incomplete: "ExpandGraph"
-    ):
+    ) -> list["ExpandGraph"]:
         """
         注意, 这里会按照 `unused` 边的数量, 拷贝多份 `incomplete` 图
         每份 incomplete 图, 都会连接一条 unused 边
@@ -128,8 +129,10 @@ class ExpandGraph:
 
         if not unused_set <= incomplete_set:
             if not unused_set >= incomplete_set:
-                # 没有共同点
-                return result
+                # 没有共同点, 采用另一个算法
+                return ExpandGraph.union_then_intersect_on_connective_v(
+                    potential_unused, potential_incomplete
+                )
             # 交换位置
             unused, incomplete = incomplete, unused
 
@@ -139,3 +142,52 @@ class ExpandGraph:
             result.append(new_expanding_dg)
 
         return result
+
+    @staticmethod
+    def union_then_intersect_on_connective_v(
+        left_expand_graph: "ExpandGraph", right_expand_graph: "ExpandGraph"
+    ) -> list["ExpandGraph"]:
+        """
+        先将两个图的 `点` 和 `非垂悬边` 合成到一张新的图里面
+
+        然后再遍历两图的 `半垂悬边`, 选出那些可以相互连接的边
+        """
+
+        left_dyn_graph = left_expand_graph.dyn_graph
+        right_dyn_graph = right_expand_graph.dyn_graph
+
+        if left_dyn_graph.get_vid_set() & right_dyn_graph.get_vid_set():
+            # 两个图存在 `公共点`, 转移到另一个算法
+            return ExpandGraph.intersect_then_union_on_same_v(
+                left_expand_graph, right_expand_graph
+            )
+
+        left_vs = list(left_dyn_graph.v_entities.values())
+        right_vs = list(right_dyn_graph.v_entities.values())
+        left_es = list(left_dyn_graph.e_entities.values())
+        right_es = list(right_dyn_graph.e_entities.values())
+
+        new_dyn_graph = (
+            DynGraph()
+            .update_v_batch(left_vs + right_vs)
+            .update_e_batch(left_es + right_es)
+        )
+        dst_v_grouped_results: dict[DgVid, list[ExpandGraph]] = {}
+
+        # 遍历两图的 `半垂悬边`, 选出那些可以相互连接的边
+        for l_edge in left_expand_graph.dangling_e_entities.values():
+            for r_edge in right_expand_graph.dangling_e_entities.values():
+                if l_edge.src_vid in (
+                    r_edge.src_vid,
+                    r_edge.dst_vid,
+                ):
+                    expanding_graph = ExpandGraph(new_dyn_graph)
+                    expanding_graph.update_available_dangling_edges([l_edge, r_edge])
+                    dst_v_grouped_results.setdefault(r_edge.dst_vid, []).append(
+                        expanding_graph
+                    )
+
+        flattened: list[ExpandGraph] = []
+        for results in dst_v_grouped_results.values():
+            flattened.extend(results)
+        return flattened

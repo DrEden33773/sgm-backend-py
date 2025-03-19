@@ -250,8 +250,14 @@ class T_Bucket:
         for outer in outer_:
             for inner in inner_:
                 if not (outer.get_vid_set() & inner.get_vid_set()):
-                    # 先在 `点` 上取交集
+                    # 没有共同点, 属于另一种算法
+                    unions = ExpandGraph.union_then_intersect_on_connective_v(
+                        outer, inner
+                    )
+                    result.extend(unions)
                     continue
+
+                # 先在 `点` 上取交集
 
                 # 虽然理论上来说 outer 是 unused 概率更大, 但是还是要严格的判断
                 # 判断逻辑: 谁是子集, 谁就是 unused
