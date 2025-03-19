@@ -69,3 +69,10 @@ def init_db():
     engine = create_engine(DB_URL, echo=False)
     SQLModel.metadata.create_all(engine)
     return engine
+
+
+def init_db_with_clear():
+    engine = create_engine(DB_URL, echo=False)
+    SQLModel.metadata.drop_all(engine)
+    SQLModel.metadata.create_all(engine)
+    return engine

@@ -1,24 +1,35 @@
-from typing import Optional, override
+from functools import lru_cache
+from typing import override
 
-from schema import Attr, DataEdge, DataVertex, Label
+from schema import DataEdge, DataVertex, Label, PatternAttr
 from storage.abc import StorageAdapter
 
 
 class Neo4jStorageAdapter(StorageAdapter):
     @override
-    def load_vertices(
-        self,
-        v_label: Label,
-        v_attr: Optional[Attr] = None,
-    ) -> list[DataVertex]:
-        # TODO: Implement this method
+    @lru_cache
+    def load_v(self, v_label: Label) -> list[DataVertex]:
         raise NotImplementedError
 
     @override
-    def load_edges(
+    @lru_cache
+    def load_v_with_attr(
+        self,
+        v_label: Label,
+        v_attr: PatternAttr,
+    ) -> list[DataVertex]:
+        raise NotImplementedError
+
+    @override
+    @lru_cache
+    def load_e(self, e_label: Label) -> list[DataEdge]:
+        raise NotImplementedError
+
+    @override
+    @lru_cache
+    def load_e_with_attr(
         self,
         e_label: Label,
-        e_attr: Optional[Attr] = None,
+        e_attr: PatternAttr,
     ) -> list[DataEdge]:
-        # TODO: Implement this method
         raise NotImplementedError

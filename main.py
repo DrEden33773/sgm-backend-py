@@ -1,6 +1,20 @@
-def main():
-    print("Hello from backend-py!")
+from pathlib import Path
+
+from executor import ExecEngine
+from sqlite_dg_builder.triangles import TriangleDgBuilder
+from utils.dbg import pprint
+
+SCRIPT_DIR = Path(__file__).parent.absolute()
+FILEPATH = SCRIPT_DIR / "plan.json"
+
+
+def test_triangle_plan():
+    TriangleDgBuilder().build()
+    result = ExecEngine.from_json(FILEPATH.read_text()).exec_without_final_join()
+
+    print("\nResult:")
+    pprint(result)
 
 
 if __name__ == "__main__":
-    main()
+    test_triangle_plan()

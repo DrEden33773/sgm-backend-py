@@ -23,7 +23,10 @@ class InitOperator(InstrOperator):
         label, attr = pattern_v.label, pattern_v.attr
 
         # 加载顶点
-        matched_vs = self.storage_adapter.load_vertices(label, attr)
+        if not attr:
+            matched_vs = self.storage_adapter.load_v(label)
+        else:
+            matched_vs = self.storage_adapter.load_v_with_attr(label, attr)
 
         # 这里一定先 `初始化` 容器
         self.ctx.init_f_pool(instr.target_var)

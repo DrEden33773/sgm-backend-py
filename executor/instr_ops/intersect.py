@@ -69,4 +69,8 @@ class IntersectOperator(InstrOperator):
     def load_vertices(self, instr: Instruction):
         pattern_v = self.ctx.get_pattern_v(instr.vid)
         label, attr = pattern_v.label, pattern_v.attr
-        return self.storage_adapter.load_vertices(label, attr)
+
+        if not attr:
+            return self.storage_adapter.load_v(label)
+        else:
+            return self.storage_adapter.load_v_with_attr(label, attr)

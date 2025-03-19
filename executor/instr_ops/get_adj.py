@@ -23,7 +23,10 @@ class GetAdjOperator(InstrOperator):
         # 按照 `终点的模式`, `分组` 加载边
         for pattern_e in pattern_es:
             label, attr = pattern_e.label, pattern_e.attr
-            data_es = self.storage_adapter.load_edges(label, attr)
+            if not attr:
+                data_es = self.storage_adapter.load_e(label)
+            else:
+                data_es = self.storage_adapter.load_e_with_attr(label, attr)
             A_bucket.with_new_edges(data_es, dst_pat_vid=pattern_e.dst_vid)
 
         # A_bucket 过滤: 选出 `可连接的边` 和 `被连接的图`

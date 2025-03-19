@@ -19,7 +19,7 @@ type Label = str
 
 
 @dataclass
-class Attr:
+class PatternAttr:
     attr: str
     op: Op
     value: int | float | str
@@ -34,6 +34,9 @@ class Attr:
         if any(v is None for v in (attr, op, value, type)):
             return None
         return cls(attr, op, value, type)
+
+    def __hash__(self) -> int:
+        return hash(self.attr)
 
 
 @dataclass
@@ -82,12 +85,12 @@ class PatternVertex:
 
     vid: Vid
     label: Label
-    attr: Optional[Attr] = None
+    attr: Optional[PatternAttr] = None
 
     @classmethod
     def from_vertex_info(cls, vid: Vid, info: VertexInfoTuple):
         label, attr = info
-        return cls(vid, label, Attr.from_attr_info(attr))
+        return cls(vid, label, PatternAttr.from_attr_info(attr))
 
     def __hash__(self) -> int:
         return hash(self.vid)
@@ -113,12 +116,12 @@ class PatternEdge:
     label: Label
     src_vid: Vid
     dst_vid: Vid
-    attr: Optional[Attr] = None
+    attr: Optional[PatternAttr] = None
 
     @classmethod
     def from_edge_info(cls, eid: Eid, info: EdgeInfoTuple):
         src_vid, dst_vid, label, attr = info
-        return cls(eid, label, src_vid, dst_vid, Attr.from_attr_info(attr))
+        return cls(eid, label, src_vid, dst_vid, PatternAttr.from_attr_info(attr))
 
     def __hash__(self) -> int:
         return hash(self.eid)
