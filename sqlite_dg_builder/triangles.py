@@ -18,10 +18,10 @@ class TriangleDgBuilder:
         vertices = red_vertices + green_vertices + blue_vertices
         edges = [
             DataEdge("a", EDGE, "2", "3"),
-            DataEdge("c", EDGE, "3", "5"),
+            # DataEdge("c", EDGE, "3", "5"),
             DataEdge("b", EDGE, "5", "2"),
-            DataEdge("e", EDGE, "2", "4"),
-            DataEdge("d", EDGE, "4", "5"),
+            # DataEdge("e", EDGE, "2", "4"),
+            # DataEdge("d", EDGE, "4", "5"),
         ]
 
         self.db_vertices = [Vertex(vid=v.vid, label=v.label) for v in vertices]

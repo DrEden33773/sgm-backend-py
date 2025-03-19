@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from schema.basic import STR_TUPLE_SPLITTER, AttrType, InstructionType, Op, VarPrefix
@@ -109,6 +109,18 @@ class DataVertex:
 
 
 @dataclass
+class TheDataVertex:
+    """数据顶点"""
+
+    vid: Vid
+    label: Label
+    attrs: dict[str, int | float | str] = field(default_factory=dict)
+
+    def __hash__(self) -> int:
+        return hash(self.vid)
+
+
+@dataclass
 class PatternEdge:
     """模式边信息"""
 
@@ -136,6 +148,20 @@ class DataEdge:
     src_vid: Vid
     dst_vid: Vid
     attr: Optional[int | float | str] = None
+
+    def __hash__(self) -> int:
+        return hash(self.eid)
+
+
+@dataclass
+class TheDataEdge:
+    """数据边"""
+
+    eid: Eid
+    label: Label
+    src_vid: Vid
+    dst_vid: Vid
+    attrs: dict[str, int | float | str] = field(default_factory=dict)
 
     def __hash__(self) -> int:
         return hash(self.eid)

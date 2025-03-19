@@ -50,20 +50,20 @@ class f_Bucket:
     def from_C_bucket(cls, C_bucket: "C_Bucket"):
         all_matched: list[DynGraph] = []
 
-        # 无需 `分裂式` 枚举, 直接导出
-        if not C_bucket.need_further_enumeration:
-            all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
-            return cls(all_matched)
+        # if not C_bucket.need_further_enumeration:
+        #     all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
+        #     return cls(all_matched)
+        # for expanded in C_bucket.all_expanded:
+        #     target_v = expanded.target_v_entities.values()
+        #     for v in target_v:
+        #         # 这里得用 deepcopy (cloned), 因为每个 target_v 都会生成一张图
+        #         new_dg = expanded.to_dyn_graph_cloned()
+        #         new_dg.update_v(v)
+        #         all_matched.append(new_dg)
+        # return cls(all_matched)
 
-        # 需要 `分裂式` 枚举
-        for expanded in C_bucket.all_expanded:
-            target_v = expanded.target_v_entities.values()
-            for v in target_v:
-                # 这里得用 deepcopy (cloned), 因为每个 target_v 都会生成一张图
-                new_dg = expanded.to_dyn_graph_cloned()
-                new_dg.update_v(v)
-                all_matched.append(new_dg)
-
+        # 现在的算法, 会在 C_bucket 阶段, 直接完成基于 `下一个数据点` 的 `分裂`
+        all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
         return cls(all_matched)
 
 
@@ -78,10 +78,6 @@ class A_Bucket:
     next_pat_grouped_expanding: dict[PgVid, list[ExpandGraph]] = field(
         default_factory=dict
     )
-
-    @staticmethod
-    def is_dg_v_the_pattern_of(dg_vid: DgVid, pat_vid: PgVid):
-        pass
 
     @classmethod
     def from_f_bucket(cls, curr_pat_vid: PgVid, f_bucket: f_Bucket):
@@ -110,7 +106,7 @@ class A_Bucket:
 
             # 分组迭代 `新增边`
             for next_pat_vid, edges in self.next_pat_grouped_edges.items():
-                connective_edges: list[DataEdge] = []
+                next_vid_grouped_connective_edges: dict[DgVid, list[DataEdge]] = {}
 
                 for edge in edges:
                     # 挑选出 `可连接的` 的边
@@ -124,7 +120,9 @@ class A_Bucket:
                         if does_data_v_satisfy_pattern(
                             dangling_e_vid, next_pat_vid, pattern_vs, storage_adapter
                         ):
-                            connective_edges.append(edge)
+                            next_vid_grouped_connective_edges.setdefault(
+                                dangling_e_vid, []
+                            ).append(edge)
                             is_curr_dg_expandable = True
 
                 # 如果当前匹配 `不可扩张`, 直接跳过
@@ -132,11 +130,13 @@ class A_Bucket:
                     continue
 
                 # 指定位置, 构造 `扩展图`
-                expanding_dg = ExpandGraph(deepcopy(dg))
-                expanding_dg.update_available_dangling_edges(connective_edges)
-                self.next_pat_grouped_expanding.setdefault(next_pat_vid, []).append(
-                    expanding_dg
-                )
+                # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩展图`
+                for connective_edges in next_vid_grouped_connective_edges.values():
+                    expanding_dg = ExpandGraph(deepcopy(dg))
+                    expanding_dg.update_available_dangling_edges(connective_edges)
+                    self.next_pat_grouped_expanding.setdefault(next_pat_vid, []).append(
+                        expanding_dg
+                    )
 
         self.all_matched.clear()
         self.next_pat_grouped_edges.clear()
