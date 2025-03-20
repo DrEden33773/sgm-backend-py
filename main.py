@@ -88,6 +88,6 @@ if __name__ == "__main__":
     # test_more_triangle()
     # test_triangle_forest()
     # test_more_triangle_forest()
-    # test_ldbc_ic_6()
-    test_ldbc_ic_6_simplified()
+    test_ldbc_ic_6()
+    # test_ldbc_ic_6_simplified()
     pass

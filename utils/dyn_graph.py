@@ -228,3 +228,12 @@ class DynGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
                 eids.update(src_v.e_in & dst_v.e_out)
 
         return set(self.get_e_from_eid(eid) for eid in eids)
+
+    def __or__(self, other: "DynGraph[VType, EType]"):
+        """图与图的并集 (union-with-intersection)"""
+
+        return DynGraph(
+            v_entities={**self.v_entities, **other.v_entities},
+            e_entities={**self.e_entities, **other.e_entities},
+            adj_table={**self.adj_table, **other.adj_table},
+        )
