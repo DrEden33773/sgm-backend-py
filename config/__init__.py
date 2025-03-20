@@ -4,4 +4,8 @@
 
 DB_URL = "sqlite:///data_graph.db"
 
-DBG_INSTR = False  # 是否打印指令
+DIRECTED_EDGE_SUPPORT = False
+""" 是否支持有向边 """
+
+DBG_INSTR = False
+""" 是否调试 `指令信息` """

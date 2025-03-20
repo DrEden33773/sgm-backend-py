@@ -1,21 +1,23 @@
 from functools import lru_cache
-from typing import override
+from typing import Optional, override
 
 from sqlmodel import Session, select
 
 from schema import DataEdge, DataVertex, Label, PatternAttr
 from storage.abc import StorageAdapter
 from storage.sqlite.db_entity import DB_Edge, DB_Vertex, init_db
+from utils.tracked_lru_cache import track_lru_cache_annotated
 
 
 class SQLiteStorageAdapter(StorageAdapter):
     """SQLite 存储适配器"""
 
-    def __init__(self) -> None:
+    def __init__(self, db_url: Optional[str] = None) -> None:
         super().__init__()
-        self.engine = init_db()
+        self.engine = init_db() if not db_url else init_db(db_url)
 
     @override
+    @track_lru_cache_annotated
     @lru_cache
     def get_v(self, vid: str) -> DataVertex:
         query = select(DB_Vertex).where(DB_Vertex.vid == vid)
@@ -27,6 +29,7 @@ class SQLiteStorageAdapter(StorageAdapter):
         return DataVertex(vid=db_vertex.vid, label=db_vertex.label, attrs=attrs)
 
     @override
+    @track_lru_cache_annotated
     @lru_cache
     def load_v(self, v_label: Label) -> list[DataVertex]:
         query = select(DB_Vertex).where(DB_Vertex.label == v_label)
@@ -42,6 +45,7 @@ class SQLiteStorageAdapter(StorageAdapter):
             ]
 
     @override
+    @track_lru_cache_annotated
     @lru_cache
     def load_v_with_attr(
         self,
@@ -70,6 +74,7 @@ class SQLiteStorageAdapter(StorageAdapter):
             ]
 
     @override
+    @track_lru_cache_annotated
     @lru_cache
     def load_e(self, e_label: Label) -> list[DataEdge]:
         query = select(DB_Edge).where(DB_Edge.label == e_label)
@@ -87,6 +92,7 @@ class SQLiteStorageAdapter(StorageAdapter):
             ]
 
     @override
+    @track_lru_cache_annotated
     @lru_cache
     def load_e_with_attr(
         self,

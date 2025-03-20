@@ -129,6 +129,10 @@ class DynGraph:
         """获取点数量"""
         return len(self.v_entities)
 
+    def get_e_count(self):
+        """获取边数量"""
+        return len(self.e_entities)
+
     """ ========== 基本操作 ========== """
 
     def update_v(self, vertex: DataVertex):

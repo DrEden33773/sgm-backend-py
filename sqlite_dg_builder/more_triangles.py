@@ -11,7 +11,7 @@ class MoreTriangleDgBuilder:
         BLUE = "Blue"
         EDGE = "Edge"
 
-        red_vertices = [DataVertex(str(vid), RED) for vid in [1, 4, 9]]
+        red_vertices = [DataVertex(str(vid), RED) for vid in [1, 4, 9, 10]]
         green_vertices = [DataVertex(str(vid), GREEN) for vid in [2, 5, 7]]
         blue_vertices = [DataVertex(str(vid), BLUE) for vid in [3, 6, 8]]
 
@@ -24,9 +24,11 @@ class MoreTriangleDgBuilder:
             DataEdge("e", EDGE, "5", "6"),
             DataEdge("f", EDGE, "6", "4"),
             DataEdge("g", EDGE, "4", "7"),
-            # TheDataEdge("j", EDGE, "7", "8"),
+            DataEdge("j", EDGE, "7", "8"),
             DataEdge("h", EDGE, "8", "4"),
             DataEdge("i", EDGE, "1", "4"),
+            DataEdge("k", EDGE, "10", "5"),
+            DataEdge("m", EDGE, "6", "10"),
         ]
 
         self.db_vertices = [DB_Vertex(vid=v.vid, label=v.label) for v in vertices]

@@ -5,6 +5,7 @@ from functools import lru_cache
 from executor.matching_ctx.type_aliases import DgVid
 from schema import DataEdge, DataVertex, Eid, Vid
 from utils.dyn_graph import DynGraph, VNode
+from utils.tracked_lru_cache import track_lru_cache_annotated
 
 
 @dataclass
@@ -51,6 +52,7 @@ class ExpandGraph:
         更新 `合法半垂悬边`, 返回 `不合法半垂悬边`
         """
 
+        @track_lru_cache_annotated
         @lru_cache
         def is_valid_edge(edge: DataEdge):
             return self.dyn_graph.is_e_connective(
@@ -80,6 +82,7 @@ class ExpandGraph:
         - 只有在 `垂悬边` 中的点才会被添加到 `邻接表` 中
         """
 
+        @track_lru_cache_annotated
         @lru_cache
         def is_valid_target(v: DataVertex):
             for edge in self.dangling_e_entities.values():
@@ -172,6 +175,10 @@ class ExpandGraph:
         先将两个图的 `点` 和 `非垂悬边` 合成到一张新的图里面
 
         然后再遍历两图的 `半垂悬边`, 选出那些可以相互连接的边
+
+        - 注意: 这个策略有可能会匹配出 `规模比模式图大` 的 `数据图`
+            - 这个例子, 详见 `main.py` 中 `test_more_triangle_plan`
+            - 最简单的方法是, `Report` 阶段进行严格的 `点数 + 边数` 过滤
         """
 
         left_dyn_graph = left_expand_graph.dyn_graph

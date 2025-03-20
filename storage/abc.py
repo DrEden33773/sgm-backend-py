@@ -2,12 +2,14 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 
 from schema import DataEdge, DataVertex, Label, PatternAttr, Vid
+from utils.tracked_lru_cache import track_lru_cache_annotated
 
 
 class StorageAdapter(ABC):
     """`存储适配器` 抽象基类"""
 
     @abstractmethod
+    @track_lru_cache_annotated
     @lru_cache
     def get_v(self, vid: Vid) -> DataVertex:
         """
@@ -17,6 +19,7 @@ class StorageAdapter(ABC):
         """
 
     @abstractmethod
+    @track_lru_cache_annotated
     @lru_cache
     def load_v(self, v_label: Label) -> list[DataVertex]:
         """
@@ -26,6 +29,7 @@ class StorageAdapter(ABC):
         """
 
     @abstractmethod
+    @track_lru_cache_annotated
     @lru_cache
     def load_v_with_attr(
         self,
@@ -38,8 +42,9 @@ class StorageAdapter(ABC):
         根据 `label` 和 `attr` 加载顶点
         """
 
-    @lru_cache
     @abstractmethod
+    @track_lru_cache_annotated
+    @lru_cache
     def load_e(self, e_label: Label) -> list[DataEdge]:
         """
         ## Init
@@ -47,8 +52,9 @@ class StorageAdapter(ABC):
         根据 `label` 加载边
         """
 
-    @lru_cache
     @abstractmethod
+    @track_lru_cache_annotated
+    @lru_cache
     def load_e_with_attr(
         self,
         e_label: Label,
