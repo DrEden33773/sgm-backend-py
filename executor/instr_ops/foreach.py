@@ -11,7 +11,7 @@ class ForeachOperator(InstrOperator):
     """Foreach 指令算子"""
 
     @override
-    def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
+    def execute(self, instr: Instruction, result: list[list[DynGraph]] = []):
         """执行指令"""
 
         dbg.pprint_instr(instr)

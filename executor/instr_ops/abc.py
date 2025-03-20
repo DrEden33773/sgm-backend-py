@@ -50,5 +50,5 @@ class InstrOperator:
             return operator(data_v_attr_value, pattern_v_attr_value)
 
     @abstractmethod
-    def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
+    def execute(self, instr: Instruction, result: list[list[DynGraph]] = []):
         """执行指令"""

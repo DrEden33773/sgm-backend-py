@@ -34,9 +34,9 @@ class ExecEngine:
     def exec_without_final_join(self):
         """执行计划, 返回匹配结果 (有嵌套的返回, 并不执行最终的 Join)"""
 
-        result: list[list[DynGraph]] = list()
+        result: list[list[DynGraph]] = []
         instructions = self.plan_data.instructions
-        operators: list[InstrOperator] = list()
+        operators: list[InstrOperator] = []
 
         for instr in instructions:
             instr_operator = OperatorFactory.create(

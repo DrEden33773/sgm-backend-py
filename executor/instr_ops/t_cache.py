@@ -14,5 +14,5 @@ class TCacheOperator(InstrOperator):
 
     @deprecated(DEPRECATED_REASON)
     @override
-    def execute(self, instr: Instruction, result: list[list[DynGraph]] = list()):
+    def execute(self, instr: Instruction, result: list[list[DynGraph]] = []):
         """执行指令"""
