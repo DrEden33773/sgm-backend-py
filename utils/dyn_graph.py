@@ -24,7 +24,7 @@ class VNode:
     """
     点节点
 
-    - 邻接边可以垂悬
+    - 邻接边 `不可以垂悬`
     """
 
     e_in: set[Eid] = field(default_factory=set)
