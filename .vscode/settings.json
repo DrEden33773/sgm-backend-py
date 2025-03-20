@@ -5,12 +5,15 @@
         "BENU",
         "Danglable",
         "eids",
+        "libsqlite",
         "neomodel",
         "networkx",
+        "pipx",
         "pycache",
         "Pylance",
         "sqlmodel",
-        "venv"
+        "venv",
+        "winget"
     ],
     "sqltools.useNodeRuntime": true,
     "sqltools.connections": []
