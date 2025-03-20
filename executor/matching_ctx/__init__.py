@@ -27,12 +27,12 @@ class MatchingCtx:
     pattern_es: dict[PgEid, PatternEdge] = field(default_factory=dict)
     """ 模式图边集 """
 
-    connected_data_vids: set[DgVid] = field(default_factory=set)
-    """ 已经在 GetAdj 步骤中, 被连接的数据图点集 """
+    expanded_data_vids: set[DgVid] = field(default_factory=set)
+    """ 已经在 GetAdj 步骤中, 被 expand 的数据图点集 """
 
-    def update_connected_data_vids(self, data_vids: set[DgVid]):
+    def update_expanded_data_vids(self, data_vids: set[DgVid]):
         """更新已连接数据图点集"""
-        self.connected_data_vids.update(data_vids)
+        self.expanded_data_vids.update(data_vids)
 
     F_pool: dict[PgVid, f_Bucket] = field(default_factory=dict)
     """

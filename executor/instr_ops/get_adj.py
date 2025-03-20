@@ -68,6 +68,6 @@ class GetAdjOperator(InstrOperator):
             self.ctx.pattern_vs, self.storage_adapter
         )
 
-        # 更新容器 (以及 `已被连接的点集`)
+        # 更新容器 (以及 `已被扩张的点集`)
         self.ctx.update_A_pool(instr.target_var, A_bucket)
-        self.ctx.update_connected_data_vids(connected_data_vids)
+        self.ctx.update_expanded_data_vids(connected_data_vids)

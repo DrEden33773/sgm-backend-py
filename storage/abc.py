@@ -55,6 +55,26 @@ class StorageAdapter(ABC):
     @abstractmethod
     @track_lru_cache_annotated
     @lru_cache
+    def load_e_by_src_vid(self, src_vid: Vid, e_label: Label) -> list[DataEdge]:
+        """
+        ## Init
+
+        根据 `src_vid` 和 `label` 加载边
+        """
+
+    @abstractmethod
+    @track_lru_cache_annotated
+    @lru_cache
+    def load_e_by_dst_vid(self, dst_vid: Vid, e_label: Label) -> list[DataEdge]:
+        """
+        ## Init
+
+        根据 `dst_vid` 和 `label` 加载边
+        """
+
+    @abstractmethod
+    @track_lru_cache_annotated
+    @lru_cache
     def load_e_with_attr(
         self,
         e_label: Label,
@@ -64,4 +84,34 @@ class StorageAdapter(ABC):
         ## Init
 
         根据 `label` 和 `attr` 加载边
+        """
+
+    @abstractmethod
+    @track_lru_cache_annotated
+    @lru_cache
+    def load_e_by_src_vid_with_attr(
+        self,
+        src_vid: Vid,
+        e_label: Label,
+        e_attr: PatternAttr,
+    ) -> list[DataEdge]:
+        """
+        ## Init
+
+        根据 `src_vid`, `label` 和 `attr` 加载边
+        """
+
+    @abstractmethod
+    @track_lru_cache_annotated
+    @lru_cache
+    def load_e_by_dst_vid_with_attr(
+        self,
+        dst_vid: Vid,
+        e_label: Label,
+        e_attr: PatternAttr,
+    ) -> list[DataEdge]:
+        """
+        ## Init
+
+        根据 `dst_vid`, `label` 和 `attr` 加载边
         """
