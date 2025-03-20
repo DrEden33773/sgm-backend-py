@@ -11,7 +11,9 @@ class IC6Builder:
             DataVertex("4", "Tag", attrs={"name": "ComputerScience", "color": "red"}),
             DataVertex("5", "Tag", attrs={"name": "Engineering", "color": "blue"}),
             DataVertex("6", "Tag", attrs={"name": "Art", "color": "green"}),
-        ] + [DataVertex(str(vid), "Tag") for vid in [7, 8]]
+            DataVertex("7", "Tag", attrs={"name": "ComputerScience", "color": "green"}),
+            DataVertex("8", "Tag", attrs={"name": "Engineering", "color": "green"}),
+        ]
         persons = [
             DataVertex("9", "Person", attrs={"id": 123}),
             DataVertex("10", "Person", attrs={"id": 456}),
@@ -21,7 +23,7 @@ class IC6Builder:
             DataEdge("a", "hasTag", "1", "4"),
             DataEdge("b", "hasTag", "1", "5"),
             DataEdge("c", "hasTag", "1", "6"),
-            DataEdge("d", "hasTag", "2", "7"),
+            DataEdge("d", "hasTag", "7", "2"),
             DataEdge("e", "hasTag", "2", "8"),
         ]
         has_creator = [

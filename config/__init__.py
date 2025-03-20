@@ -2,9 +2,9 @@
 配置文件
 """
 
-DB_URL = "sqlite:///data_graph.db"
+SQLITE_DB_URL = "sqlite:///data_graph.db"
 
-DIRECTED_EDGE_SUPPORT = False
+DIRECTED_EDGE_SUPPORT = True
 """ 是否支持有向边 """
 
 DBG_INSTR = True

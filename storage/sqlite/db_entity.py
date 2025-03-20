@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
-from config import DB_URL
+from config import SQLITE_DB_URL
 from schema import PatternAttr
 from schema.basic import str_op_to_operator
 from utils.tracked_lru_cache import track_lru_cache_annotated
@@ -174,13 +174,13 @@ class Edge_Attribute(BaseAttribute, table=True):
 
 
 def init_db(db_url: Optional[str] = None):
-    engine = create_engine(DB_URL if not db_url else db_url, echo=False)
+    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=False)
     SQLModel.metadata.create_all(engine)
     return engine
 
 
 def init_db_with_clear(db_url: Optional[str] = None):
-    engine = create_engine(DB_URL if not db_url else db_url, echo=False)
+    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=False)
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     return engine
