@@ -43,9 +43,10 @@ class GetAdjOperator(InstrOperator):
             A_bucket.with_new_edges(data_es, next_pat_vid)
 
         # A_bucket 过滤: 选出 `可连接的边` 和 `被连接的图`
-        A_bucket.select_connective_edges_and_graphs(
+        connected_data_vids = A_bucket.select_connective_edges_and_graphs(
             self.ctx.pattern_vs, self.storage_adapter
         )
 
-        # 更新容器
+        # 更新容器 (以及 `已被连接的点集`)
         self.ctx.update_A_pool(instr.target_var, A_bucket)
+        self.ctx.update_connected_data_vids(connected_data_vids)

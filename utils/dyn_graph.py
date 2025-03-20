@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from schema import DataEdge, DataVertex, Eid, Vid
+from schema import DataEdge, DataVertex, Eid, VertexBase, Vid
 
 COMPLETELY_DANGLE_BASE = """
 Detected `completely-dangling edge`:
@@ -53,19 +53,19 @@ class RemoveVCascadeLevel(Enum):
 
 
 @dataclass
-class DynGraph:
+class DynGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
     """
     动态多重有向图 (不允许 `垂悬边`)
 
     - 类似 networkx.MultiDiGraph
     """
 
-    v_entities: dict[Vid, DataVertex] = field(default_factory=dict)
+    v_entities: dict[Vid, VType] = field(default_factory=dict)
     """ 
     点实体 
     - { vid -> Vertex }
     """
-    e_entities: dict[Eid, DataEdge] = field(default_factory=dict)
+    e_entities: dict[Eid, EType] = field(default_factory=dict)
     """ 
     边实体 
     - { eid -> Edge }
@@ -135,7 +135,7 @@ class DynGraph:
 
     """ ========== 基本操作 ========== """
 
-    def update_v(self, vertex: DataVertex):
+    def update_v(self, vertex: VType):
         """更新点信息"""
 
         self.v_entities[vertex.vid] = vertex
@@ -143,7 +143,7 @@ class DynGraph:
 
         return self
 
-    def update_v_batch(self, vertices: list[DataVertex]):
+    def update_v_batch(self, vertices: list[VType]):
         """批量更新点信息"""
 
         for vertex in vertices:
@@ -151,7 +151,7 @@ class DynGraph:
 
         return self
 
-    def update_e(self, edge: DataEdge):
+    def update_e(self, edge: EType):
         """更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
         self.e_entities[edge.eid] = edge
@@ -176,7 +176,7 @@ class DynGraph:
             # ? -[edge]-> ?
             raise RuntimeError(COMPLETELY_DANGLE_BASE.format(edge.eid))
 
-    def update_e_batch(self, edges: list[DataEdge]):
+    def update_e_batch(self, edges: list[EType]):
         """批量更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
         for edge in edges:

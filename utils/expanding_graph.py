@@ -3,13 +3,13 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 from executor.matching_ctx.type_aliases import DgVid
-from schema import DataEdge, DataVertex, Eid, Vid
+from schema import DataEdge, DataVertex, Eid, VertexBase, Vid
 from utils.dyn_graph import DynGraph, VNode
 from utils.tracked_lru_cache import track_lru_cache_annotated
 
 
 @dataclass
-class ExpandGraph:
+class ExpandGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
     """
     `扩张中` / `刚好扩张结束` 的图
 
@@ -18,16 +18,16 @@ class ExpandGraph:
         - 它必须是某个 `有半垂悬边` 的图, 连接数个 `顶点` 后形成的.
     """
 
-    dyn_graph: DynGraph
+    dyn_graph: DynGraph[VType, EType]
     """ 图 """
 
     target_v_adj_table: dict[Vid, VNode] = field(default_factory=dict)
     """ `扩张终点` 的 `邻接表` """
 
-    dangling_e_entities: dict[Eid, DataEdge] = field(default_factory=dict)
+    dangling_e_entities: dict[Eid, EType] = field(default_factory=dict)
     """ 垂悬边实体 """
 
-    target_v_entities: dict[Vid, DataVertex] = field(default_factory=dict)
+    target_v_entities: dict[Vid, VType] = field(default_factory=dict)
     """ 扩张终点实体 """
 
     def __post_init__(self):
@@ -47,20 +47,20 @@ class ExpandGraph:
 
         return dangling_e_grouped
 
-    def update_available_dangling_edges(self, dangling_edges: list[DataEdge]):
+    def update_available_dangling_edges(self, dangling_edges: list[EType]):
         """
         更新 `合法半垂悬边`, 返回 `不合法半垂悬边`
         """
 
         @track_lru_cache_annotated
         @lru_cache
-        def is_valid_edge(edge: DataEdge):
+        def is_valid_edge(edge: EType):
             return self.dyn_graph.is_e_connective(
                 edge
             ) and not self.dyn_graph.is_e_full_connective(edge)
 
-        legal_edges: set[DataEdge] = set()
-        illegal_edges: set[DataEdge] = set()
+        legal_edges: set[EType] = set()
+        illegal_edges: set[EType] = set()
         for edge in dangling_edges:
             if is_valid_edge(edge):
                 legal_edges.add(edge)
@@ -75,7 +75,7 @@ class ExpandGraph:
 
         return illegal_edges
 
-    def update_available_target_vertices(self, target_vertices: list[DataVertex]):
+    def update_available_target_vertices(self, target_vertices: list[VType]):
         """
         更新 `合法扩张终点`, 返回 `不合法扩张终点`
 
@@ -84,13 +84,13 @@ class ExpandGraph:
 
         @track_lru_cache_annotated
         @lru_cache
-        def is_valid_target(v: DataVertex):
+        def is_valid_target(v: VType):
             for edge in self.dangling_e_entities.values():
                 if v.vid in (edge.src_vid, edge.dst_vid):
                     return True
 
-        legal_targets: set[DataVertex] = set()
-        illegal_vertices: set[DataVertex] = set()
+        legal_targets: set[VType] = set()
+        illegal_vertices: set[VType] = set()
         for v in target_vertices:
             if is_valid_target(v):
                 legal_targets.add(v)

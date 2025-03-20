@@ -10,7 +10,7 @@ SCRIPT_DIR = Path(__file__).parent.absolute()
 PLAN_DIR = SCRIPT_DIR / "resources" / "plan"
 
 
-def test_triangle_plan():
+def test_triangle():
     TriangleDgBuilder().build()
     result = ExecEngine.from_json(
         (PLAN_DIR / "triangle.json").read_text()
@@ -22,7 +22,7 @@ def test_triangle_plan():
     clear_all_tracked_caches()
 
 
-def test_more_triangle_plan():
+def test_more_triangle():
     MoreTriangleDgBuilder().build()
     result = ExecEngine.from_json(
         (PLAN_DIR / "triangle.json").read_text()
@@ -34,6 +34,32 @@ def test_more_triangle_plan():
     clear_all_tracked_caches()
 
 
+def test_triangle_forest():
+    TriangleDgBuilder().build()
+    result = ExecEngine.from_json(
+        (PLAN_DIR / "forest.json").read_text()
+    ).exec_without_final_join()
+
+    print("\nResult:")
+    pprint(result)
+
+    clear_all_tracked_caches()
+
+
+def test_more_triangle_forest():
+    MoreTriangleDgBuilder().build()
+    result = ExecEngine.from_json(
+        (PLAN_DIR / "forest.json").read_text()
+    ).exec_without_final_join()
+
+    print("\nResult:")
+    pprint(result)
+
+    clear_all_tracked_caches()
+
+
 if __name__ == "__main__":
-    test_triangle_plan()
-    test_more_triangle_plan()
+    # test_triangle()
+    # test_more_triangle()
+    test_triangle_forest()
+    pass

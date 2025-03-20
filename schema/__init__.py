@@ -86,11 +86,23 @@ class Instruction:
 
 
 @dataclass
-class PatternVertex:
-    """模式顶点信息"""
-
+class VertexBase:
     vid: Vid
     label: Label
+
+
+@dataclass
+class EdgeBase:
+    eid: Eid
+    label: Label
+    src_vid: Vid
+    dst_vid: Vid
+
+
+@dataclass
+class PatternVertex(VertexBase):
+    """模式顶点信息"""
+
     attr: Optional[PatternAttr] = None
 
     @classmethod
@@ -103,11 +115,9 @@ class PatternVertex:
 
 
 @dataclass
-class DataVertex:
+class DataVertex(VertexBase):
     """数据顶点"""
 
-    vid: Vid
-    label: Label
     attrs: dict[str, int | float | str] = field(default_factory=dict)
 
     def __hash__(self) -> int:
@@ -115,13 +125,9 @@ class DataVertex:
 
 
 @dataclass
-class PatternEdge:
+class PatternEdge(EdgeBase):
     """模式边信息"""
 
-    eid: Eid
-    label: Label
-    src_vid: Vid
-    dst_vid: Vid
     attr: Optional[PatternAttr] = None
 
     @classmethod
@@ -134,13 +140,9 @@ class PatternEdge:
 
 
 @dataclass
-class DataEdge:
+class DataEdge(EdgeBase):
     """数据边"""
 
-    eid: Eid
-    label: Label
-    src_vid: Vid
-    dst_vid: Vid
     attrs: dict[str, int | float | str] = field(default_factory=dict)
 
     def __hash__(self) -> int:

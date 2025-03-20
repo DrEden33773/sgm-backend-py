@@ -51,6 +51,10 @@ class ExecEngine:
         return result
 
     @staticmethod
+    def preview_result_scale_only(result: list[list[DynGraph]]):
+        pass
+
+    @staticmethod
     def dbg_deserialize_json(plan_json: str):
         plan_json_raw = json.loads(plan_json)
         plan_dict = cast(PlanDict, plan_json_raw)

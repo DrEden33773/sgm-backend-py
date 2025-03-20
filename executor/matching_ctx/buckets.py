@@ -53,18 +53,6 @@ class f_Bucket:
     def from_C_bucket(cls, C_bucket: "C_Bucket"):
         all_matched: list[DynGraph] = []
 
-        # if not C_bucket.need_further_enumeration:
-        #     all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
-        #     return cls(all_matched)
-        # for expanded in C_bucket.all_expanded:
-        #     target_v = expanded.target_v_entities.values()
-        #     for v in target_v:
-        #         # 这里得用 deepcopy (cloned), 因为每个 target_v 都会生成一张图
-        #         new_dg = expanded.to_dyn_graph_cloned()
-        #         new_dg.update_v(v)
-        #         all_matched.append(new_dg)
-        # return cls(all_matched)
-
         # 现在的算法, 会在 C_bucket 阶段, 直接完成基于 `下一个数据点` 的 `分裂`
         all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
         return cls(all_matched)
@@ -100,8 +88,10 @@ class A_Bucket:
     ):
         """选出 `可连接的边` 和 `被连接的图` (内部求交)"""
 
+        connected_data_vids: set[DgVid] = set()
+
         if not self.all_matched or not self.next_pat_grouped_edges:
-            return
+            return connected_data_vids
 
         # 迭代 `已匹配` 的数据图
         for dg in self.all_matched:
@@ -137,6 +127,8 @@ class A_Bucket:
                                 dangling_e_vid, []
                             ).append(edge)
                             is_curr_dg_expandable = True
+                            # 更新 `已连接点集`
+                            connected_data_vids.add(connective_e_vid)
 
                 # 如果当前匹配 `不可扩张`, 直接跳过
                 if not is_curr_dg_expandable:
@@ -154,13 +146,14 @@ class A_Bucket:
         self.all_matched.clear()
         self.next_pat_grouped_edges.clear()
 
+        return connected_data_vids
+
 
 @dataclass
 class C_Bucket:
     """候选集 (C) 桶"""
 
     all_expanded: list[ExpandGraph] = field(default_factory=list)
-    need_further_enumeration: bool = True
 
     @classmethod
     def build_from_A(
@@ -184,7 +177,7 @@ class C_Bucket:
             all_expanded.append(expanding)
 
         # 从 `A_bucket` 构造的图, 后续还需要 `进一步枚举`
-        return cls(all_expanded, need_further_enumeration=True)
+        return cls(all_expanded)
 
     @classmethod
     def build_from_T(cls, T_bucket: "T_Bucket", loaded_vertices: list[DataVertex]):
@@ -201,7 +194,7 @@ class C_Bucket:
             all_expanded.append(expanding)
 
         # 从 `T_bucket` 构造的图, 已经被 `完全枚举`
-        return cls(all_expanded, need_further_enumeration=False)
+        return cls(all_expanded)
 
 
 @dataclass

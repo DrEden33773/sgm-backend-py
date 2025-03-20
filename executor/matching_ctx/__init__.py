@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 from executor.matching_ctx.buckets import A_Bucket, C_Bucket, T_Bucket, f_Bucket
-from executor.matching_ctx.type_aliases import PgEid, PgVid
+from executor.matching_ctx.type_aliases import DgVid, PgEid, PgVid
 from schema import DataEdge, PatternEdge, PatternVertex, PlanData
 from schema.basic import STR_TUPLE_SPLITTER
 from utils.dyn_graph import DynGraph
@@ -26,6 +26,13 @@ class MatchingCtx:
 
     pattern_es: dict[PgEid, PatternEdge] = field(default_factory=dict)
     """ 模式图边集 """
+
+    connected_data_vids: set[DgVid] = field(default_factory=set)
+    """ 已经在 GetAdj 步骤中, 被连接的数据图点集 """
+
+    def update_connected_data_vids(self, data_vids: set[DgVid]):
+        """更新已连接数据图点集"""
+        self.connected_data_vids.update(data_vids)
 
     F_pool: dict[PgVid, f_Bucket] = field(default_factory=dict)
     """
