@@ -1,7 +1,7 @@
 from sqlmodel import Session
 
 from schema import DataEdge, DataVertex
-from storage.sqlite.db_entity import Edge, Vertex, init_db_with_clear
+from storage.sqlite.db_entity import DB_Edge, DB_Vertex, init_db_with_clear
 
 
 class TriangleDgBuilder:
@@ -24,12 +24,12 @@ class TriangleDgBuilder:
             DataEdge("d", EDGE, "4", "5"),
         ]
 
-        self.db_vertices = [Vertex(vid=v.vid, label=v.label) for v in vertices]
+        self.db_vertices = [DB_Vertex(vid=v.vid, label=v.label) for v in vertices]
         self.db_edges = [
-            Edge(
+            DB_Edge(
                 eid=e.eid,
                 src_vid=e.src_vid,
-                dst=e.dst_vid,
+                dst_vid=e.dst_vid,
                 label=e.label,
             )
             for e in edges

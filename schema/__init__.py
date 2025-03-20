@@ -20,7 +20,7 @@ type Label = str
 
 @dataclass
 class PatternAttr:
-    attr: str
+    key: str
     op: Op
     value: int | float | str
     type: AttrType
@@ -36,7 +36,13 @@ class PatternAttr:
         return cls(attr, op, value, type)
 
     def __hash__(self) -> int:
-        return hash(self.attr)
+        return hash(self.key)
+
+    def does_data_attr_satisfy(self, data_attr: Optional[int | float | str] = None):
+        operator = self.op.to_operator()
+        if not data_attr:
+            return False
+        return operator(data_attr, self.value)
 
 
 @dataclass
@@ -102,18 +108,6 @@ class DataVertex:
 
     vid: Vid
     label: Label
-    attr: Optional[int | float | str] = None
-
-    def __hash__(self) -> int:
-        return hash(self.vid)
-
-
-@dataclass
-class TheDataVertex:
-    """数据顶点"""
-
-    vid: Vid
-    label: Label
     attrs: dict[str, int | float | str] = field(default_factory=dict)
 
     def __hash__(self) -> int:
@@ -141,20 +135,6 @@ class PatternEdge:
 
 @dataclass
 class DataEdge:
-    """数据边"""
-
-    eid: Eid
-    label: Label
-    src_vid: Vid
-    dst_vid: Vid
-    attr: Optional[int | float | str] = None
-
-    def __hash__(self) -> int:
-        return hash(self.eid)
-
-
-@dataclass
-class TheDataEdge:
     """数据边"""
 
     eid: Eid

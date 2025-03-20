@@ -25,16 +25,19 @@ def does_data_v_satisfy_pattern(
     if not pattern_v.attr:
         # 模式点未规定属性
         return True
-    elif not data_v.attr:
+    elif not data_v.attrs:
         # 模式点规定了属性, 但是数据点没有属性
         return False
     else:
         operator = pattern_v.attr.op.to_operator()
-        data_v_attr_value = data_v.attr
-        pattern_v_attr_value = pattern_v.attr.value
-        if type(data_v_attr_value) is not type(pattern_v_attr_value):
+        if pattern_v.attr.key not in data_v.attrs:
+            # 模式点规定了属性, 但是数据点没有这个属性
             return False
-        return operator(data_v_attr_value, pattern_v_attr_value)
+        data_value = data_v.attrs[pattern_v.attr.key]
+        if type(data_value) is not type(pattern_v.attr.value):
+            # 模式点规定了属性, 但是数据点的属性类型不匹配
+            return False
+        return operator(data_value, pattern_v.attr.value)
 
 
 @dataclass
@@ -161,7 +164,10 @@ class C_Bucket:
 
     @classmethod
     def build_from_A(
-        cls, A_bucket: A_Bucket, curr_pat_vid: PgVid, loaded_vertices: list[DataVertex]
+        cls,
+        A_bucket: A_Bucket,
+        curr_pat_vid: PgVid,
+        loaded_vertices: list[DataVertex],
     ):
         # 从 A_bucket 中弹出当前分组
         curr_group = A_bucket.next_pat_grouped_expanding.pop(curr_pat_vid, [])
