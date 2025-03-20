@@ -5,6 +5,7 @@ from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, sele
 
 from config import DB_URL
 from schema import PatternAttr
+from utils.tracked_lru_cache import track_lru_cache_annotated
 
 type Attr = int | float | str
 type AttrDict = dict[str, Attr]
@@ -64,6 +65,7 @@ class DB_Vertex(SQLModel, table=True):
         self.get_attributes.cache_clear()  # 清除缓存
         return attributes
 
+    @track_lru_cache_annotated
     @lru_cache
     def get_attribute(self, session: Session, key: str) -> Optional[Attr]:
         """获取属性值"""
@@ -74,6 +76,7 @@ class DB_Vertex(SQLModel, table=True):
         attr = session.exec(stmt).first()
         return attr.typed_value if attr else None
 
+    @track_lru_cache_annotated
     @lru_cache
     def get_attributes(self, session: Session) -> AttrDict:
         """获取所有属性值"""
@@ -123,6 +126,7 @@ class DB_Edge(SQLModel, table=True):
         self.get_attributes.cache_clear()  # 清除缓存
         return attributes
 
+    @track_lru_cache_annotated
     @lru_cache
     def get_attribute(self, session: Session, key: str) -> Optional[Attr]:
         """获取属性值"""
@@ -133,6 +137,7 @@ class DB_Edge(SQLModel, table=True):
         attr = session.exec(stmt).first()
         return attr.typed_value if attr else None
 
+    @track_lru_cache_annotated
     @lru_cache
     def get_attributes(self, session: Session) -> AttrDict:
         """获取所有属性值"""
