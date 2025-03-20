@@ -1,6 +1,7 @@
 import pprint as pp
 from functools import lru_cache
 
+from config import DBG_INSTR
 from schema import Instruction
 
 WIDTH = 40
@@ -20,6 +21,8 @@ def pprint(obj: object):
 
 
 def pprint_instr(instr: Instruction):
+    if not DBG_INSTR:
+        return
     print_header("↓↓↓")
     pprint(instr)
     print_header("↑↑↑")
