@@ -1,7 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from schema.basic import STR_TUPLE_SPLITTER, AttrType, InstructionType, Op, VarPrefix
+from schema.basic import (
+    STR_TUPLE_SPLITTER,
+    AttrType,
+    InstructionType,
+    Op,
+    VarPrefix,
+    str_op_to_operator,
+)
 from schema.json_repr_typed_dict import (
     AttrInfo,
     DisplayedInstr,
@@ -39,10 +46,17 @@ class PatternAttr:
         return hash(self.key)
 
     def is_data_attr_satisfied(self, data_attr: Optional[int | float | str] = None):
-        operator = self.op.to_operator()
+        operator = str_op_to_operator(self.op)
         if not data_attr:
             return False
+        if type(data_attr) is not type(self.value):
+            return False
         return operator(data_attr, self.value)
+
+    def is_data_attrs_satisfied(self, data_attrs: dict[str, int | float | str]):
+        if self.key not in data_attrs:
+            return False
+        return self.is_data_attr_satisfied(data_attrs[self.key])
 
 
 @dataclass

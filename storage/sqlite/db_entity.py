@@ -5,6 +5,7 @@ from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, sele
 
 from config import DB_URL
 from schema import PatternAttr
+from schema.basic import str_op_to_operator
 from utils.tracked_lru_cache import track_lru_cache_annotated
 
 type Attr = int | float | str
@@ -34,7 +35,7 @@ class BaseAttribute(SQLModel):
             return False
         if self.type != type(pattern_attr.value).__name__:
             return False
-        operator = pattern_attr.op.to_operator()
+        operator = str_op_to_operator(pattern_attr.op)
         return operator(self.typed_value, pattern_attr.value)
 
 

@@ -13,20 +13,21 @@ class Op(StrEnum):
     Lt = "<"
     Le = "<="
 
-    def to_operator(self):
-        match self:
-            case Op.Eq:
-                return eq
-            case Op.Ne:
-                return ne
-            case Op.Gt:
-                return gt
-            case Op.Ge:
-                return ge
-            case Op.Lt:
-                return lt
-            case Op.Le:
-                return le
+
+def str_op_to_operator(op: Op):
+    match op:
+        case Op.Eq:
+            return eq
+        case Op.Ne:
+            return ne
+        case Op.Gt:
+            return gt
+        case Op.Ge:
+            return ge
+        case Op.Lt:
+            return lt
+        case Op.Le:
+            return le
 
 
 class AttrType(StrEnum):

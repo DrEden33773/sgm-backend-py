@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from executor.matching_ctx.type_aliases import DgEdge, DgVid, PgEid, PgVid
 from schema import DataEdge, DataVertex, PatternVertex
+from schema.basic import str_op_to_operator
 from storage.abc import StorageAdapter
 from utils.dyn_graph import DynGraph
 from utils.expanding_graph import ExpandGraph
@@ -29,7 +30,7 @@ def does_data_v_satisfy_pattern(
         # 模式点规定了属性, 但是数据点没有属性
         return False
     else:
-        operator = pattern_v.attr.op.to_operator()
+        operator = str_op_to_operator(pattern_v.attr.op)
         if pattern_v.attr.key not in data_v.attrs:
             # 模式点规定了属性, 但是数据点没有这个属性
             return False

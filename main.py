@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from executor import ExecEngine
+from sqlite_dg_builder.ic_6 import IC6Builder
 from sqlite_dg_builder.more_triangles import MoreTriangleDgBuilder
 from sqlite_dg_builder.triangles import TriangleDgBuilder
 from utils.dbg import pprint
@@ -58,8 +59,22 @@ def test_more_triangle_forest():
     clear_all_tracked_caches()
 
 
+def test_ldbc_ic_6():
+    IC6Builder().build()
+    result = ExecEngine.from_json(
+        (PLAN_DIR / "ldbc-ic-6.json").read_text()
+    ).exec_without_final_join()
+
+    print("\nResult:")
+    pprint(result)
+
+    clear_all_tracked_caches()
+
+
 if __name__ == "__main__":
     # test_triangle()
     # test_more_triangle()
-    test_triangle_forest()
+    # test_triangle_forest()
+    # test_more_triangle_forest()
+    test_ldbc_ic_6()
     pass

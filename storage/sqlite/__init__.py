@@ -52,16 +52,7 @@ class SQLiteStorageAdapter(StorageAdapter):
         v_label: Label,
         v_attr: PatternAttr,
     ) -> list[DataVertex]:
-        query = (
-            select(DB_Vertex)
-            .where(DB_Vertex.label == v_label)
-            .where(
-                any(
-                    attr.could_satisfy_pattern_attr(v_attr)
-                    for attr in DB_Vertex.attributes
-                )
-            )
-        )
+        query = select(DB_Vertex).where(DB_Vertex.label == v_label)
         with Session(self.engine) as session:
             db_vertices = session.exec(query).all()
             return [
@@ -71,6 +62,7 @@ class SQLiteStorageAdapter(StorageAdapter):
                     attrs=db_vertex.get_attributes(session),
                 )
                 for db_vertex in db_vertices
+                if v_attr.is_data_attrs_satisfied(db_vertex.get_attributes(session))
             ]
 
     @override
@@ -99,16 +91,7 @@ class SQLiteStorageAdapter(StorageAdapter):
         e_label: Label,
         e_attr: PatternAttr,
     ) -> list[DataEdge]:
-        query = (
-            select(DB_Edge)
-            .where(DB_Edge.label == e_label)
-            .where(
-                any(
-                    attr.could_satisfy_pattern_attr(e_attr)
-                    for attr in DB_Edge.attributes
-                )
-            )
-        )
+        query = select(DB_Edge).where(DB_Edge.label == e_label)
         with Session(self.engine) as session:
             db_edges = session.exec(query).all()
         return [
@@ -120,4 +103,5 @@ class SQLiteStorageAdapter(StorageAdapter):
                 attrs=db_edge.get_attributes(session),
             )
             for db_edge in db_edges
+            if e_attr.is_data_attrs_satisfied(db_edge.get_attributes(session))
         ]
