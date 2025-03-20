@@ -9,6 +9,7 @@ Total : 44 files,  3134 codes, 87 comments, 584 blanks, all 3805 lines
 Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
 ## Languages
+
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | Python | 35 | 1,744 | 87 | 559 | 2,390 |
@@ -17,6 +18,7 @@ Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-
 | source.markdown.math | 1 | 16 | 0 | 7 | 23 |
 
 ## Directories
+
 | path | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | . | 44 | 3,134 | 87 | 584 | 3,805 |
