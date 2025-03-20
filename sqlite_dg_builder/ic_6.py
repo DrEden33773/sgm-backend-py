@@ -33,9 +33,9 @@ class IC6Builder:
         ]
         knows = [
             DataEdge("i", "knows", "9", "11"),
-            DataEdge("j", "knows", "11", "9"),
+            # DataEdge("j", "knows", "11", "9"),
             DataEdge("k", "knows", "10", "11"),
-            DataEdge("m", "knows", "11", "10"),
+            # DataEdge("m", "knows", "11", "10"),
         ]
 
         self.db_vertices = [
