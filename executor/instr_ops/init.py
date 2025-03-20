@@ -29,7 +29,7 @@ class InitOperator(InstrOperator):
             else self.storage_adapter.load_v_with_attr(label, attr)
         )
 
-        # 这里一定先 `初始化` 容器
+        # 这里一定先 `初始化` f_pool 对应位置
         self.ctx.init_f_pool(instr.target_var)
 
         # 更新容器

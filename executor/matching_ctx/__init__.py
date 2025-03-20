@@ -58,6 +58,14 @@ class MatchingCtx:
     - { 点模式标签 pg_vid -> T_bucket }
     """
 
+    empty_matched_set_appeared: bool = False
+    """ 
+    是否出现了 `空匹配集`
+    
+    - 一旦出现, 意味着 GetAdj 过程因为无法完整匹配 `所有对应模式边` 而失败
+    - 必须要放弃所有 f_pool 中残存的子图
+    """
+
     def __post_init__(self):
         self.pattern_vs = self.plan_data.vertices
         self.pattern_es = self.plan_data.edges
@@ -65,7 +73,7 @@ class MatchingCtx:
     """ ========== """
 
     def init_f_pool(self, target_var: str):
-        """Init: 初始化 f_pool"""
+        """Foreach: 初始化 f_pool"""
         key = resolve_var_name(target_var)
         self.F_pool[key] = f_Bucket()
 
@@ -74,10 +82,20 @@ class MatchingCtx:
         key = resolve_var_name(target_var)
         self.F_pool[key].append_matched(matched_dg)
 
+    def update_f_pool(self, target_var: str, f_bucket: f_Bucket):
+        """Foreach: 更新 F_pool"""
+        key = resolve_var_name(target_var)
+        self.F_pool[key] = f_bucket
+
     def resolve_f_bucket(self, single_op: str):
         """GetAdj: 解析 f_bucket"""
         key = resolve_var_name(single_op)
         return self.F_pool[key]
+
+    def init_A_pool(self, target_var: str):
+        """GetAdj: 初始化 A_pool"""
+        key = resolve_var_name(target_var)
+        self.A_pool[key] = A_Bucket(curr_pat_vid=key)
 
     def update_A_pool(self, target_var: str, a_bucket: A_Bucket):
         """GetAdj: 更新 A_pool"""
@@ -89,30 +107,35 @@ class MatchingCtx:
         key = resolve_var_name(single_op)
         return self.A_pool[key]
 
+    def init_C_pool(self, target_var: str):
+        """Intersect: 初始化 C_pool"""
+        key = resolve_var_name(target_var)
+        self.C_pool[key] = C_Bucket()
+
     def update_C_pool(self, target_var: str, c_bucket: C_Bucket):
         """Intersect: 更新 C_pool"""
         key = resolve_var_name(target_var)
         self.C_pool[key] = c_bucket
-
-    def resolve_T_pool(self, single_op: str):
-        """Intersect(Tx): 解析 T_pool"""
-        key = resolve_var_name(single_op)
-        return self.T_pool[key]
-
-    def update_T_pool(self, target_var: str, t_bucket: T_Bucket):
-        """Intersect: 更新 T_pool"""
-        key = resolve_var_name(target_var)
-        self.T_pool[key] = t_bucket
 
     def resolve_C_pool(self, single_op: str):
         """Foreach: 解析 C_pool"""
         key = resolve_var_name(single_op)
         return self.C_pool[key]
 
-    def update_f_pool(self, target_var: str, f_bucket: f_Bucket):
-        """Foreach: 更新 F_pool"""
+    def init_T_pool(self, target_var: str):
+        """Intersect: 初始化 T_pool"""
         key = resolve_var_name(target_var)
-        self.F_pool[key] = f_bucket
+        self.T_pool[key] = T_Bucket(target_pat_vid=key)
+
+    def update_T_pool(self, target_var: str, t_bucket: T_Bucket):
+        """Intersect: 更新 T_pool"""
+        key = resolve_var_name(target_var)
+        self.T_pool[key] = t_bucket
+
+    def resolve_T_pool(self, single_op: str):
+        """Intersect(Tx): 解析 T_pool"""
+        key = resolve_var_name(single_op)
+        return self.T_pool[key]
 
     """ ========== """
 

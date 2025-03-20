@@ -17,6 +17,13 @@ class ReportOperator(InstrOperator):
 
         f_pool = self.ctx.F_pool
 
+        if self.ctx.empty_matched_set_appeared:
+            # 如果出现了空的匹配集, 那么就不应该进行 `Report` 操作
+            # 但是, 出于一致性原则, 还是把 result 给初始化好
+            for _ in range(len(f_pool)):
+                result.append([])
+            return
+
         # 更新结果
         #
         # 由于 `Intersect(T, A)` 的 `union_then_intersect_on_connective_v` 策略

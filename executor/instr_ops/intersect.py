@@ -32,8 +32,15 @@ class IntersectOperator(InstrOperator):
     def with_adj_set(self, instr: Instruction):
         """`Vi` ∩ `Ax` -> `Cy`"""
 
-        loaded_vertices = self.load_vertices(instr)
+        # 初始化 ctx 中 C_pool 对应位置
+        self.ctx.init_C_pool(instr.target_var)
+
         A_bucket = self.ctx.resolve_A_pool(instr.single_op)
+        if not A_bucket:
+            # 如果 A_bucket 为空, 说明没有邻接点, 那么就直接返回
+            return
+
+        loaded_vertices = self.load_vertices(instr)
         C_bucket = C_Bucket.build_from_A(
             A_bucket, curr_pat_vid=instr.vid, loaded_vertices=loaded_vertices
         )
@@ -42,16 +49,25 @@ class IntersectOperator(InstrOperator):
     def with_multi_adj_set(self, instr: Instruction):
         """A(T)_{i} ∩ A_{i+1} -> `Tx`"""
 
+        # 初始化 ctx 中 T_pool 对应位置
+        self.ctx.init_T_pool(instr.target_var)
+
         A_buckets = [self.ctx.resolve_A_pool(op) for op in instr.multi_ops]
-
         A1, A2 = A_buckets
-        T_bucket = T_Bucket.build_from_A_A(A1, A2, instr.vid)
+        if not A1 or not A2:
+            return
 
+        T_bucket = T_Bucket.build_from_A_A(A1, A2, instr.vid)
         if len(A_buckets) > 2:
             prev_T = T_bucket
             for A_bucket in A_buckets[2:]:
+                if not A_bucket:
+                    return
                 T_bucket = T_Bucket.build_from_T_A(prev_T, A_bucket)
                 prev_T = T_bucket
+
+            if not prev_T:
+                return
             T_bucket = prev_T
 
         self.ctx.update_T_pool(instr.target_var, T_bucket)
@@ -59,8 +75,14 @@ class IntersectOperator(InstrOperator):
     def with_temp_intersected(self, instr: Instruction):
         """`Vi` ∩ `Tx` -> `Cy`"""
 
+        # 初始化 ctx 中 C_pool 对应位置
+        self.ctx.init_C_pool(instr.target_var)
+
         loaded_vertices = self.load_vertices(instr)
         T_bucket = self.ctx.resolve_T_pool(instr.single_op)
+        if not T_Bucket:
+            return
+
         C_bucket = C_Bucket.build_from_T(T_bucket, loaded_vertices)
         self.ctx.update_C_pool(instr.target_var, C_bucket)
 

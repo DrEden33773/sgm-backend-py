@@ -25,6 +25,9 @@ class GetAdjOperator(InstrOperator):
         f_bucket = self.ctx.resolve_f_bucket(instr.single_op)
         A_bucket = A_Bucket.from_f_bucket(curr_pat_vid, f_bucket)
 
+        # 先初始化 ctx 中 A_pool 对应位置
+        self.ctx.init_A_pool(instr.target_var)
+
         # 按照 `下一个点的模式`, `分组` 加载边
         for pattern_e in pattern_es:
             label, attr = pattern_e.label, pattern_e.attr
@@ -53,6 +56,14 @@ class GetAdjOperator(InstrOperator):
                         self.storage_adapter,
                     )
                 ]
+
+            if not data_es:
+                # 如果没有 `数据边`, 那么就应该 `放弃` 这一整次的 `扩张`
+                # 因为这意味着无法匹配上当前的 `模式边`
+                #
+                # 放在这里是为了照顾 `DIRECTED_EDGE_SUPPORT` 为 `True` 的情况
+                self.ctx.empty_matched_set_appeared = True
+                return
 
             # 注意: next_pat_vid 不要直接根据 pattern_e 的终点加载
             next_pat_vid = (

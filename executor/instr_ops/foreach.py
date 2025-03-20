@@ -16,6 +16,12 @@ class ForeachOperator(InstrOperator):
 
         dbg.pprint_instr(instr)
 
+        # 先初始化 ctx 中 f_pool 对应位置
+        self.ctx.init_f_pool(instr.target_var)
+
         C_bucket = self.ctx.resolve_C_pool(instr.single_op)
+        if not C_bucket:
+            return
+
         f_bucket = f_Bucket.from_C_bucket(C_bucket)
         self.ctx.update_f_pool(instr.target_var, f_bucket)

@@ -23,7 +23,8 @@ class IC6Builder:
             DataEdge("a", "hasTag", "1", "4"),
             DataEdge("b", "hasTag", "1", "5"),
             DataEdge("c", "hasTag", "1", "6"),
-            DataEdge("d", "hasTag", "7", "2"),
+            # DataEdge("d", "hasTag", "7", "2"),
+            DataEdge("d", "hasTag", "2", "7"),
             DataEdge("e", "hasTag", "2", "8"),
         ]
         has_creator = [
@@ -33,9 +34,9 @@ class IC6Builder:
         ]
         knows = [
             DataEdge("i", "knows", "9", "11"),
-            # DataEdge("j", "knows", "11", "9"),
+            DataEdge("j", "knows", "11", "9"),
             DataEdge("k", "knows", "10", "11"),
-            # DataEdge("m", "knows", "11", "10"),
+            DataEdge("m", "knows", "11", "10"),
         ]
 
         self.db_vertices = [
