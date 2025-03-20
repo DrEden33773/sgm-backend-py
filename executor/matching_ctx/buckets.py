@@ -10,7 +10,7 @@ from utils.expanding_graph import ExpandGraph
 
 def does_data_v_satisfy_pattern(
     dg_vid: DgVid,
-    pat_vid: PgEid,
+    pat_vid: PgVid,
     pattern_vs: dict[PgVid, PatternVertex],
     storage_adapter: StorageAdapter,
 ) -> bool:

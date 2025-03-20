@@ -38,7 +38,7 @@ class PatternAttr:
     def __hash__(self) -> int:
         return hash(self.key)
 
-    def does_data_attr_satisfy(self, data_attr: Optional[int | float | str] = None):
+    def is_data_attr_satisfied(self, data_attr: Optional[int | float | str] = None):
         operator = self.op.to_operator()
         if not data_attr:
             return False

@@ -1,7 +1,9 @@
 from typing import override
 
+from config import DIRECTED_EDGE_SUPPORT
 from executor.instr_ops.abc import InstrOperator
 from executor.matching_ctx import A_Bucket
+from executor.matching_ctx.buckets import does_data_v_satisfy_pattern
 from schema import Instruction
 from utils import dbg
 from utils.dyn_graph import DynGraph
@@ -33,7 +35,26 @@ class GetAdjOperator(InstrOperator):
                 else self.storage_adapter.load_e_with_attr(label, attr)
             )
 
-            # 注意: next_pat_vid 不要根据 pattern_e 的终点加载
+            if DIRECTED_EDGE_SUPPORT:
+                # 如果支持有向边, 那么就要在 `src` 和 `dst` 上, 逐位进行匹配
+                data_es = [
+                    e
+                    for e in data_es
+                    if does_data_v_satisfy_pattern(
+                        e.src_vid,
+                        pattern_e.src_vid,
+                        self.ctx.pattern_vs,
+                        self.storage_adapter,
+                    )
+                    and does_data_v_satisfy_pattern(
+                        e.dst_vid,
+                        pattern_e.dst_vid,
+                        self.ctx.pattern_vs,
+                        self.storage_adapter,
+                    )
+                ]
+
+            # 注意: next_pat_vid 不要直接根据 pattern_e 的终点加载
             next_pat_vid = (
                 pattern_e.dst_vid
                 if curr_pat_vid == pattern_e.src_vid
