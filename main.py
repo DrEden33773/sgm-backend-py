@@ -11,30 +11,6 @@ SCRIPT_DIR = Path(__file__).parent.absolute()
 PLAN_DIR = SCRIPT_DIR / "resources" / "plan"
 
 
-def test_triangle():
-    TriangleDgBuilder().build()
-    result = ExecEngine.from_json(
-        (PLAN_DIR / "triangle.json").read_text()
-    ).exec_without_final_join()
-
-    print("\nResult:")
-    pprint(result)
-
-    clear_all_tracked_caches()
-
-
-def test_more_triangle():
-    MoreTriangleDgBuilder().build()
-    result = ExecEngine.from_json(
-        (PLAN_DIR / "triangle.json").read_text()
-    ).exec_without_final_join()
-
-    print("\nResult:")
-    pprint(result)
-
-    clear_all_tracked_caches()
-
-
 def test_triangle_forest():
     TriangleDgBuilder().build()
     result = ExecEngine.from_json(
@@ -84,10 +60,8 @@ def test_ldbc_ic_6_simplified():
 
 
 if __name__ == "__main__":
-    # test_triangle()
-    # test_more_triangle()
     # test_triangle_forest()
     # test_more_triangle_forest()
-    test_ldbc_ic_6()
     # test_ldbc_ic_6_simplified()
+    test_ldbc_ic_6()
     pass
