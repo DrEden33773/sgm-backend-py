@@ -16,7 +16,7 @@ class MoreTriangleDgBuilder:
         blue_vertices = [DataVertex(str(vid), BLUE) for vid in [3, 6, 8]]
 
         vertices = red_vertices + green_vertices + blue_vertices
-        edges = [
+        raw_edges = [
             DataEdge("a", EDGE, "1", "2"),
             DataEdge("b", EDGE, "2", "3"),
             DataEdge("c", EDGE, "3", "1"),
@@ -30,6 +30,8 @@ class MoreTriangleDgBuilder:
             DataEdge("k", EDGE, "10", "5"),
             DataEdge("m", EDGE, "6", "10"),
         ]
+        # 经过和查询计划的比对, raw_edge 每条边的方向都是反的, 全部反转
+        edges = [e.reversed() for e in raw_edges]
 
         self.db_vertices = [DB_Vertex(vid=v.vid, label=v.label) for v in vertices]
         self.db_edges = [

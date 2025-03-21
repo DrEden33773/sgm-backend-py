@@ -112,6 +112,13 @@ class EdgeBase:
     src_vid: Vid
     dst_vid: Vid
 
+    def __contains__(self, vid: Vid):
+        return vid in (self.src_vid, self.dst_vid)
+
+    def reversed(self):
+        self.src_vid, self.dst_vid = self.dst_vid, self.src_vid
+        return self
+
 
 @dataclass
 class PatternVertex(VertexBase):
@@ -152,9 +159,6 @@ class PatternEdge(EdgeBase):
     def __hash__(self) -> int:
         return hash(self.eid)
 
-    def __contains__(self, vid: Vid):
-        return vid in (self.src_vid, self.dst_vid)
-
 
 @dataclass
 class DataEdge(EdgeBase):
@@ -164,9 +168,6 @@ class DataEdge(EdgeBase):
 
     def __hash__(self) -> int:
         return hash(self.eid)
-
-    def __contains__(self, vid: Vid):
-        return vid in (self.src_vid, self.dst_vid)
 
 
 @dataclass

@@ -23,7 +23,6 @@ class IC6Builder:
             DataEdge("a", "hasTag", "1", "4"),
             DataEdge("b", "hasTag", "1", "5"),
             DataEdge("c", "hasTag", "1", "6"),
-            # DataEdge("d", "hasTag", "7", "2"),
             DataEdge("d", "hasTag", "2", "7"),
             DataEdge("e", "hasTag", "2", "8"),
         ]

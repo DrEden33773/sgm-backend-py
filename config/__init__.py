@@ -14,5 +14,5 @@ SQLITE_ATTR_USE_FOREIGN_KEY = SQLITE_SCHEMA_USE_RELATIONSHIP or False
 DIRECTED_EDGE_SUPPORT = True
 """ 是否支持有向边 """
 
-DBG_INSTR = False
+DBG_INSTR = True
 """ 是否调试 `指令信息` """

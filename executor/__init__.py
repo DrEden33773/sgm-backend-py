@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from itertools import product
 from typing import cast
 
 from executor.instr_ops.abc import InstrOperator
@@ -50,9 +51,31 @@ class ExecEngine:
 
         return unjoined_result
 
-    def exec_with_final_join(self):
-        _unjoined_result = self.exec_without_final_join()
-        pass
+    def exec(self):
+        unjoined = [partial for partial in self.exec_without_final_join() if partial]
+        result: list[DynGraph] = []
+
+        if not unjoined:
+            return result
+        if len(unjoined) == 1:
+            return unjoined[0]
+
+        # 全排列组合
+        for combination in product(*unjoined):
+            curr = combination[0]
+            for next in combination[1:]:
+                new = curr | next
+                curr = new
+            result.append(curr)
+
+        # 这里最后再过滤一遍, 合并好的图, 规模应该完全与 `pattern` 一致
+        # 点数一致, 边数一致
+        return [
+            graph
+            for graph in result
+            if graph.get_v_count() == len(self.matching_ctx.pattern_vs)
+            and graph.get_e_count() == len(self.matching_ctx.pattern_es)
+        ]
 
     @staticmethod
     def preview_result_scale_only(result: list[list[DynGraph]]):

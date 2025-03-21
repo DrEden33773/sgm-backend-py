@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
-from schema import DataEdge, DataVertex, Eid, VertexBase, Vid
+from schema import DataEdge, DataVertex, EdgeBase, Eid, VertexBase, Vid
 
 COMPLETELY_DANGLE_BASE = """
 Detected `completely-dangling edge`:
@@ -32,6 +33,19 @@ class VNode:
     e_out: set[Eid] = field(default_factory=set)
     """ 出边集 { eid } """
 
+    def __or__(self, other: "VNode"):
+        """取并集"""
+        return VNode(
+            e_in=self.e_in | other.e_in,
+            e_out=self.e_out | other.e_out,
+        )
+
+    def __ior__(self, other: "VNode"):
+        """原位生效: 取并集"""
+        self.e_in |= other.e_in
+        self.e_out |= other.e_out
+        return self
+
 
 class RemoveVCascadeLevel(Enum):
     """
@@ -53,7 +67,7 @@ class RemoveVCascadeLevel(Enum):
 
 
 @dataclass
-class DynGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
+class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
     """
     动态多重有向图 (不允许 `垂悬边`)
 
@@ -102,15 +116,15 @@ class DynGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
     def get_e_from_eid(self, eid: Eid):
         return self.e_entities.get(eid)
 
-    def is_e_connective(self, edge: DataEdge):
+    def is_e_connective(self, edge: EType):
         """边是否具有连接性 (至少一个顶点存在, 因为允许 `半垂悬边`)"""
         return self.has_any_vid([edge.src_vid, edge.dst_vid])
 
-    def is_e_full_connective(self, edge: DataEdge):
+    def is_e_full_connective(self, edge: EType):
         """边是否具有连接性 (两个顶点都存在)"""
         return self.has_all_vids([edge.src_vid, edge.dst_vid])
 
-    def get_first_connective_vid_of_e(self, edge: DataEdge):
+    def get_first_connective_vid_of_e(self, edge: EType):
         """获取边上的第一个 `可连接点` 的 `vid`"""
 
         if self.has_vid(edge.src_vid):
@@ -229,11 +243,91 @@ class DynGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
 
         return set(self.get_e_from_eid(eid) for eid in eids)
 
+    def __le__(self, other: "DynGraph[VType, EType]"):
+        """self 是否为 other 的子图"""
+
+        # 检验 `邻接表`
+        for vid, v_node in self.adj_table.items():
+            # `顶点`
+            if vid not in other.adj_table:
+                return False
+            # `入边`
+            if not v_node.e_in <= other.adj_table[vid].e_in:
+                return False
+            # `出边`
+            if not v_node.e_out <= other.adj_table[vid].e_out:
+                return False
+
+        return True
+
+    def __ge__(self, other: "DynGraph[VType, EType]"):
+        """self 是否为 other 的超图"""
+
+        return other.__le__(self)
+
+    def __lt__(self, other: "DynGraph[VType, EType]"):
+        """self 是否为 other 的真子图"""
+
+        for vid, v_node in self.adj_table.items():
+            if vid not in other.adj_table:
+                return False
+            if not v_node.e_in < other.adj_table[vid].e_in:
+                return False
+            if not v_node.e_out < other.adj_table[vid].e_out:
+                return False
+
+        return True
+
+    def __gt__(self, other: "DynGraph[VType, EType]"):
+        """self 是否为 other 的真超图"""
+
+        return other.__lt__(self)
+
+    def __eq__(self, other: Any):
+        """图与图的相等判断 (equal)"""
+
+        if not isinstance(other, DynGraph):
+            return False
+        else:
+            return self.adj_table == other.adj_table
+
+    def __ne__(self, other: Any):
+        """图与图的非相等判断 (not-equal)"""
+
+        return not self.__eq__(other)
+
     def __or__(self, other: "DynGraph[VType, EType]"):
         """图与图的并集 (union-with-intersection)"""
 
-        return DynGraph(
+        res = DynGraph(
             v_entities={**self.v_entities, **other.v_entities},
             e_entities={**self.e_entities, **other.e_entities},
-            adj_table={**self.adj_table, **other.adj_table},
         )
+
+        # 单独处理 邻接表
+        for vid, v_node in self.adj_table.items():
+            res.adj_table[vid] = v_node
+        for vid, v_node in other.adj_table.items():
+            if vid not in res.adj_table:
+                res.adj_table[vid] = v_node
+            else:
+                # 取并集
+                res.adj_table[vid] |= v_node
+
+        return res
+
+    def __ior__(self, other: "DynGraph[VType, EType]"):
+        """原位生效: 图与图的并集 (union-with-intersection)"""
+
+        self.v_entities.update(other.v_entities)
+        self.e_entities.update(other.e_entities)
+
+        # 单独处理 邻接表
+        for vid, v_node in other.adj_table.items():
+            if vid not in self.adj_table:
+                self.adj_table[vid] = v_node
+            else:
+                # 取并集
+                self.adj_table[vid] |= v_node
+
+        return self

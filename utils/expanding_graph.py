@@ -3,13 +3,13 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 from executor.matching_ctx.type_aliases import DgVid
-from schema import DataEdge, DataVertex, Eid, VertexBase, Vid
+from schema import DataEdge, DataVertex, EdgeBase, Eid, VertexBase, Vid
 from utils.dyn_graph import DynGraph, VNode
 from utils.tracked_lru_cache import track_lru_cache_annotated
 
 
 @dataclass
-class ExpandGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
+class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
     """
     `扩张中` / `刚好扩张结束` 的图
 
@@ -37,7 +37,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
     def group_dangling_e_by_pending_v(self):
         """按照 `未连接的点` 对 `半垂悬边` 进行分组"""
 
-        dangling_e_grouped: dict[DgVid, list[DataEdge]] = {}
+        dangling_e_grouped: dict[DgVid, list[EType]] = {}
 
         for dangling_e in self.dangling_e_entities.values():
             if self.dyn_graph.has_vid(dangling_e.src_vid):
@@ -86,7 +86,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: DataEdge = DataEdge]:
         @lru_cache
         def is_valid_target(v: VType):
             for edge in self.dangling_e_entities.values():
-                if v.vid in (edge.src_vid, edge.dst_vid):
+                if edge.__contains__(v.vid):
                     return True
 
         legal_targets: set[VType] = set()
