@@ -19,7 +19,6 @@ def test_triangle_forest():
 
     print("\nResult:")
     pprint(result)
-
     clear_all_tracked_caches()
 
 
@@ -31,7 +30,6 @@ def test_more_triangle_forest():
 
     print("\nResult:")
     pprint(result)
-
     clear_all_tracked_caches()
 
 
@@ -43,7 +41,6 @@ def test_ldbc_ic_6():
 
     print("\nResult:")
     pprint(result)
-
     clear_all_tracked_caches()
 
 
@@ -55,7 +52,6 @@ def test_ldbc_ic_6_simplified():
 
     print("\nResult:")
     pprint(result)
-
     clear_all_tracked_caches()
 
 

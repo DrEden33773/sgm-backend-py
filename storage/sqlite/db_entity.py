@@ -3,7 +3,11 @@ from typing import Optional
 
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
-from config import SQLITE_DB_URL
+from config import (
+    SQLITE_ATTR_USE_FOREIGN_KEY,
+    SQLITE_DB_URL,
+    SQLITE_SCHEMA_USE_RELATIONSHIP,
+)
 from schema import PatternAttr
 from schema.basic import str_op_to_operator
 from utils.tracked_lru_cache import track_lru_cache_annotated
@@ -44,11 +48,14 @@ class DB_Vertex(SQLModel, table=True):
 
     vid: str = Field(primary_key=True)
     label: str = Field(index=True)
-    attributes: list["Vertex_Attribute"] = Relationship(back_populates="vertex")
 
     def __init__(self, vid: str, label: str, attrs: Optional[AttrDict] = None) -> None:
         super().__init__(vid=vid, label=label)
         self._pending_attrs: AttrDict = attrs or {}
+        if SQLITE_SCHEMA_USE_RELATIONSHIP:
+            self.attributes: list[Vertex_Attribute] = Relationship(
+                back_populates="vertex"
+            )
 
     def load_pending_attrs(self, session: Session):
         """加载待添加的属性到数据库中"""
@@ -97,7 +104,6 @@ class DB_Edge(SQLModel, table=True):
     label: str = Field(index=True)
     src_vid: str = Field(index=True)
     dst_vid: str = Field(index=True)
-    attributes: list["Edge_Attribute"] = Relationship(back_populates="edge")
 
     def __init__(
         self,
@@ -109,6 +115,8 @@ class DB_Edge(SQLModel, table=True):
     ) -> None:
         super().__init__(eid=eid, src_vid=src_vid, dst_vid=dst_vid, label=label)
         self._pending_attrs: AttrDict = attrs or {}
+        if SQLITE_SCHEMA_USE_RELATIONSHIP:
+            self.attributes: list[Edge_Attribute] = Relationship(back_populates="edge")
 
     def load_pending_attrs(self, session: Session):
         """加载待添加的属性到数据库中"""
@@ -154,8 +162,13 @@ class DB_Edge(SQLModel, table=True):
 class Vertex_Attribute(BaseAttribute, table=True):
     """顶点属性"""
 
-    vid: str = Field(index=True, foreign_key="db_vertex.vid")
-    vertex: DB_Vertex = Relationship(back_populates="attributes")
+    vid: str = Field(
+        index=True, foreign_key="db_vertex.vid" if SQLITE_ATTR_USE_FOREIGN_KEY else None
+    )
+
+    def __post_init__(self):
+        if SQLITE_SCHEMA_USE_RELATIONSHIP:
+            self.vertex: DB_Vertex = Relationship(back_populates="attributes")
 
     def __hash__(self) -> int:
         vid_hashed = hash(self.vid)
@@ -165,8 +178,13 @@ class Vertex_Attribute(BaseAttribute, table=True):
 class Edge_Attribute(BaseAttribute, table=True):
     """边属性"""
 
-    eid: str = Field(index=True, foreign_key="db_edge.eid")
-    edge: DB_Edge = Relationship(back_populates="attributes")
+    eid: str = Field(
+        index=True, foreign_key="db_edge.eid" if SQLITE_ATTR_USE_FOREIGN_KEY else None
+    )
+
+    def __post_init__(self):
+        if SQLITE_SCHEMA_USE_RELATIONSHIP:
+            self.edge: DB_Edge = Relationship(back_populates="attributes")
 
     def __hash__(self) -> int:
         eid_hashed = hash(self.eid)
