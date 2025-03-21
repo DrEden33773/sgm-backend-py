@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any
 
 from schema import DataEdge, DataVertex, EdgeBase, Eid, VertexBase, Vid
@@ -45,25 +44,6 @@ class VNode:
         self.e_in |= other.e_in
         self.e_out |= other.e_out
         return self
-
-
-class RemoveVCascadeLevel(Enum):
-    """
-    移除点-级联级别
-
-    0. 仅删除自身点
-    1. 删除自身点及关联边
-    2. 删除自身点、关联边及关联点
-    """
-
-    SelfOnly = 0
-    """仅删除自身点"""
-
-    WithEdges = 1
-    """删除自身点及关联边"""
-
-    WithEdgesAndVs = 2
-    """删除自身点、关联边及关联点"""
 
 
 @dataclass
