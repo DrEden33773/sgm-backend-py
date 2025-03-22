@@ -9,6 +9,7 @@ dependencies = [
     "neomodel>=5.4.5",
     "networkx>=3.4.2",
     "sqlmodel>=0.0.24",
+    "polars>=1.25.2",
 ]
 
 [tool.uv.sources]
