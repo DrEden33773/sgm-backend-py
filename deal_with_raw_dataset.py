@@ -13,15 +13,15 @@ def transform_relationship_csv(file_path: Path):
     df = pl.read_csv(file_path, separator="|")
     columns = df.columns
 
-    _0th = file_path.stem.split("_")[0].capitalize()
-    _label = file_path.stem.split("_")[1]
-    _2th = file_path.stem.split("_")[2].capitalize()
+    src_v_label = file_path.stem.split("_")[0].capitalize()
+    e_label = file_path.stem.split("_")[1]
+    dst_v_label = file_path.stem.split("_")[2].capitalize()
 
     rename_mapping: dict[str, str] = {}
     if len(columns) > 0 and "(" not in columns[0] and ")" not in columns[0]:
-        rename_mapping[columns[0]] = f":START_ID({_0th})"
+        rename_mapping[columns[0]] = f":START_ID({src_v_label})"
     if len(columns) > 1 and "(" not in columns[1] and ")" not in columns[1]:
-        rename_mapping[columns[1]] = f":END_ID({_2th})"
+        rename_mapping[columns[1]] = f":END_ID({dst_v_label})"
 
     # 重命名列
     if rename_mapping:
@@ -29,7 +29,7 @@ def transform_relationship_csv(file_path: Path):
         updated = True
     # 插入新列 (:TYPE)
     if ":TYPE" not in df.columns:
-        df = df.with_columns(pl.lit(_label).alias(":TYPE"))
+        df = df.with_columns(pl.lit(e_label).alias(":TYPE"))
         updated = True
 
     if updated:
@@ -44,16 +44,20 @@ def transform_node_csv(file_path: Path):
     df = pl.read_csv(file_path, separator="|")
     columns = df.columns
 
-    _0th = file_path.stem.split("_")[0].capitalize()
-    _label = _0th
+    v_label = file_path.stem.split("_")[0].capitalize()
 
     rename_mapping: dict[str, str] = {}
-    if len(columns) > 0 and "(" not in columns[0] and ")" not in columns[0]:
-        rename_mapping[columns[0]] = f"id:ID({_0th})"
+    if len(columns) > 0 and columns[0] == "id":
+        # 先指定一个 `没有存入属性 (properties/attributes)` 的 `id` (以 `string` 类型存储)
+        rename_mapping[columns[0]] = f":ID({v_label})"
+        # 再插入一列 `attr_id` (指定 `long` 类型存储)
+        df = df.with_columns(pl.col(columns[0]).cast(pl.Utf8).alias("attr_id:long"))
 
     # 重命名列
     if rename_mapping:
         df = df.rename(rename_mapping)
+        # 重命名, 这就是 `属性` 字段了
+        df = df.rename({"attr_id:long": "id:long"})
         updated = True
 
     if "type" in df.columns:
@@ -64,7 +68,7 @@ def transform_node_csv(file_path: Path):
         updated = True
     elif ":LABEL" not in df.columns:
         # 插入新列 (:LABEL)
-        df = df.with_columns(pl.lit(_label).alias(":LABEL"))
+        df = df.with_columns(pl.lit(v_label).alias(":LABEL"))
         updated = True
 
     if updated:
