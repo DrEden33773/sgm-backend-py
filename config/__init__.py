@@ -2,8 +2,9 @@
 配置文件
 """
 
-SQLITE_DB_URL = "sqlite:///data_graph.db"
-""" SQLite 数据库连接字符串 """
+SIMPLE_TEST_DB_URL = "sqlite:///data_graph.db"
+
+LDBC_SNB_INTERACTIVE_DB_URL = "sqlite:///ldbc_sn_interactive_sf01.db"
 
 SQLITE_SCHEMA_USE_RELATIONSHIP = False
 """ SQLite 实体类定义 是否添加 `Relationship` 字段 """

@@ -4,8 +4,8 @@ from typing import Optional
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
 from config import (
+    SIMPLE_TEST_DB_URL,
     SQLITE_ATTR_USE_FOREIGN_KEY,
-    SQLITE_DB_URL,
     SQLITE_SCHEMA_USE_RELATIONSHIP,
 )
 from schema import PatternAttr
@@ -192,13 +192,13 @@ class Edge_Attribute(BaseAttribute, table=True):
 
 
 def init_db(db_url: Optional[str] = None, echo: bool = False):
-    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=echo)
+    engine = create_engine(SIMPLE_TEST_DB_URL if not db_url else db_url, echo=echo)
     SQLModel.metadata.create_all(engine)
     return engine
 
 
 def init_db_with_clear(db_url: Optional[str] = None, echo: bool = False):
-    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=echo)
+    engine = create_engine(SIMPLE_TEST_DB_URL if not db_url else db_url, echo=echo)
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     return engine
