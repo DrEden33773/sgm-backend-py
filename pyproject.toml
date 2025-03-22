@@ -10,6 +10,7 @@ dependencies = [
     "networkx>=3.4.2",
     "sqlmodel>=0.0.24",
     "polars>=1.25.2",
+    "tqdm>=4.67.1",
 ]
 
 [tool.uv.sources]

@@ -14,10 +14,14 @@ if __name__ == "__main__":
     cmd_partials = [NEO4J_IMPORT]
 
     for node_file in NODES.iterdir():
+        if node_file.suffix != ".csv":
+            continue
         partial = f'--nodes="{node_file}"'
         cmd_partials.append(partial)
 
     for relationship_file in RELATIONSHIPS.iterdir():
+        if relationship_file.suffix != ".csv":
+            continue
         partial = f'--relationships="{relationship_file}"'
         cmd_partials.append(partial)
 

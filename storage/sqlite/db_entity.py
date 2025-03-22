@@ -191,14 +191,14 @@ class Edge_Attribute(BaseAttribute, table=True):
         return eid_hashed ^ hash(self.id) if self.id else eid_hashed
 
 
-def init_db(db_url: Optional[str] = None):
-    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=False)
+def init_db(db_url: Optional[str] = None, echo: bool = False):
+    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=echo)
     SQLModel.metadata.create_all(engine)
     return engine
 
 
-def init_db_with_clear(db_url: Optional[str] = None):
-    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=False)
+def init_db_with_clear(db_url: Optional[str] = None, echo: bool = False):
+    engine = create_engine(SQLITE_DB_URL if not db_url else db_url, echo=echo)
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     return engine
