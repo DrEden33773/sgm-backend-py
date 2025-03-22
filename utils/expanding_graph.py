@@ -37,7 +37,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
     def group_dangling_e_by_pending_v(self):
         """按照 `未连接的点` 对 `半垂悬边` 进行分组"""
 
-        dangling_e_grouped: dict[DgVid, list[EType]] = {}
+        dangling_e_grouped: dict[Vid, list[EType]] = {}
 
         for dangling_e in self.dangling_e_entities.values():
             if self.dyn_graph.has_vid(dangling_e.src_vid):
@@ -47,7 +47,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
         return dangling_e_grouped
 
-    def update_available_dangling_edges(self, dangling_edges: list[EType]):
+    def update_valid_dangling_edges(self, dangling_edges: list[EType]):
         """
         更新 `合法半垂悬边`, 返回 `不合法半垂悬边`
         """
@@ -75,7 +75,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
         return illegal_edges
 
-    def update_available_target_vertices(self, target_vertices: list[VType]):
+    def update_valid_target_vertices(self, target_vertices: list[VType]):
         """
         更新 `合法扩张终点`, 返回 `不合法扩张终点`
 
@@ -88,6 +88,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             for edge in self.dangling_e_entities.values():
                 if edge.__contains__(v.vid):
                     return True
+            return False
 
         legal_targets: set[VType] = set()
         illegal_vertices: set[VType] = set()
@@ -163,7 +164,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
                     continue
                 # 每次合并, 直接开一张新图
                 new_expanding_dg = deepcopy(incomplete)
-                new_expanding_dg.update_available_dangling_edges(dangling_es)
+                new_expanding_dg.update_valid_dangling_edges(dangling_es)
                 result.append(new_expanding_dg)
 
         return result
@@ -211,7 +212,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             for r_pending_vid, r_dangling_es in grouped_r_dangling_es.items():
                 if l_pending_vid == r_pending_vid:
                     new_expanding_dg = ExpandGraph(new_dyn_graph)
-                    new_expanding_dg.update_available_dangling_edges(
+                    new_expanding_dg.update_valid_dangling_edges(
                         l_dangling_es + r_dangling_es
                     )
                     dst_v_grouped_results.setdefault(l_pending_vid, []).append(

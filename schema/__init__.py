@@ -63,7 +63,7 @@ class PatternAttr:
 class Instruction:
     """指令"""
 
-    vid: str
+    vid: Vid
     type: InstructionType
     expand_eid_list: list[str]
     single_op: str
@@ -175,8 +175,8 @@ class PlanData:
     """执行计划 (详细数据)"""
 
     matching_order: list[str]
-    vertices: dict[Vid, PatternVertex]
-    edges: dict[Eid, PatternEdge]
+    pattern_vs: dict[Vid, PatternVertex]
+    pattern_es: dict[Eid, PatternEdge]
     instructions: list[Instruction]
 
     @classmethod

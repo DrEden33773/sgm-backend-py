@@ -88,8 +88,8 @@ class ExecEngine:
         plan_data = PlanData.from_plan_dict(plan_dict)
 
         matching_order = plan_data.matching_order
-        vertices = plan_data.vertices
-        edges = plan_data.edges
+        vertices = plan_data.pattern_vs
+        edges = plan_data.pattern_es
         instructions = plan_data.instructions
 
         dbg.print_header("Matching Order")

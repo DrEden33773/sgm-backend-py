@@ -67,8 +67,8 @@ class MatchingCtx:
     """
 
     def __post_init__(self):
-        self.pattern_vs = self.plan_data.vertices
-        self.pattern_es = self.plan_data.edges
+        self.pattern_vs = self.plan_data.pattern_vs
+        self.pattern_es = self.plan_data.pattern_es
 
     """ ========== """
 

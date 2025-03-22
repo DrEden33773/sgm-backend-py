@@ -139,7 +139,7 @@ class A_Bucket:
                 # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩展图`
                 for connective_edges in next_vid_grouped_connective_edges.values():
                     expanding_dg = ExpandGraph(deepcopy(dg))
-                    expanding_dg.update_available_dangling_edges(connective_edges)
+                    expanding_dg.update_valid_dangling_edges(connective_edges)
                     self.next_pat_grouped_expanding.setdefault(next_pat_vid, []).append(
                         expanding_dg
                     )
@@ -172,7 +172,7 @@ class C_Bucket:
 
         for expanding in curr_group:
             # 与给定点集 `loaded_vertices` 求交
-            expanding.update_available_target_vertices(loaded_vertices)
+            expanding.update_valid_target_vertices(loaded_vertices)
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
@@ -189,7 +189,7 @@ class C_Bucket:
 
         for expanding in T_bucket.expanding_graphs:
             # 与给定点集 `loaded_vertices` 求交
-            expanding.update_available_target_vertices(loaded_vertices)
+            expanding.update_valid_target_vertices(loaded_vertices)
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
