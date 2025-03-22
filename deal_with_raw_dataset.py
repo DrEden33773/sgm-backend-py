@@ -55,8 +55,15 @@ def transform_node_csv(file_path: Path):
     if rename_mapping:
         df = df.rename(rename_mapping)
         updated = True
-    # 插入新列 (:LABEL)
-    if ":LABEL" not in df.columns:
+
+    if "type" in df.columns:
+        # 删除原始 type 列, 并将其转换为 :LABEL 列 (每个元素都 capitalize)
+        df = df.with_columns(
+            pl.col("type").cast(pl.Utf8).str.to_titlecase().alias(":LABEL")
+        ).drop("type")
+        updated = True
+    elif ":LABEL" not in df.columns:
+        # 插入新列 (:LABEL)
         df = df.with_columns(pl.lit(_label).alias(":LABEL"))
         updated = True
 

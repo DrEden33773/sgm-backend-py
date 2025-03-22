@@ -14,12 +14,10 @@ if __name__ == "__main__":
     cmd_partials = [NEO4J_IMPORT]
 
     for node_file in NODES.iterdir():
-        # label = node_file.stem.split("_")[0]
         partial = f'--nodes="{node_file}"'
         cmd_partials.append(partial)
 
     for relationship_file in RELATIONSHIPS.iterdir():
-        # label = relationship_file.stem.split("_")[1]
         partial = f'--relationships="{relationship_file}"'
         cmd_partials.append(partial)
 
