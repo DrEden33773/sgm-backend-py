@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
+from typing import Optional
 
 from executor.matching_ctx.type_aliases import DgEdge, DgVid, PgEid, PgVid
 from schema import DataEdge, DataVertex, PatternVertex
@@ -46,6 +47,7 @@ class f_Bucket:
     """枚举目标 (f) 桶"""
 
     all_matched: list[DynGraph] = field(default_factory=list)
+    next_pivot: Optional[DgVid] = None
 
     def __post_init__(self):
         self.append_matched = self.all_matched.append
@@ -64,6 +66,7 @@ class A_Bucket:
     """邻接组合 (A) 桶"""
 
     curr_pat_vid: PgVid
+    curr_pivot_vid: Optional[DgVid] = None
     all_matched: list[DynGraph] = field(default_factory=list)
 
     next_pat_grouped_edges: dict[PgVid, set[DgEdge]] = field(default_factory=dict)
@@ -73,7 +76,10 @@ class A_Bucket:
 
     @classmethod
     def from_f_bucket(cls, curr_pat_vid: PgVid, f_bucket: f_Bucket):
-        return cls(curr_pat_vid, f_bucket.all_matched)
+        curr_pivot_vid = f_bucket.next_pivot
+        if not curr_pivot_vid:
+            curr_pivot_vid = iter(f_bucket.all_matched[0].v_entities.keys()).__next__()
+        return cls(curr_pat_vid, curr_pivot_vid, f_bucket.all_matched)
 
     def with_new_edges(self, new_edges: list[DgEdge], next_pat_vid: PgEid):
         """添加新边"""
