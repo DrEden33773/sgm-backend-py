@@ -6,7 +6,7 @@
       {
         "attr": "id",
         "op": "=",
-        "value": 8796093022404,
+        "value": 153,
         "type": "int"
       }
     ],
@@ -16,7 +16,7 @@
       {
         "attr": "name",
         "op": "=",
-        "value": "Norodom_Sihanouk",
+        "value": "Joan_Crawford",
         "type": "string"
       }
     ],
@@ -25,7 +25,7 @@
       {
         "attr": "name",
         "op": "!=",
-        "value": "Norodom_Sihanouk",
+        "value": "Joan_Crawford",
         "type": "string"
       }
     ],
@@ -33,10 +33,9 @@
   },
   "edges": {
     "a": ["person", "otherPerson", "knows", {}],
-    "b": ["otherPerson", "person", "knows", {}],
-    "c": ["post", "otherPerson", "hasCreator", {}],
-    "d": ["post", "tag", "hasTag", {}],
-    "e": ["post", "otherTag", "hasTag", {}]
+    "b": ["post", "otherPerson", "hasCreator", {}],
+    "c": ["post", "tag", "hasTag", {}],
+    "d": ["post", "otherTag", "hasTag", {}]
   },
   "instructions": [
     {
@@ -51,7 +50,7 @@
     {
       "vid": "post",
       "type": "get_adj",
-      "expand_eid_list": ["c", "d", "e"],
+      "expand_eid_list": ["b", "c", "d"],
       "single_op": "f^post",
       "multi_ops": [],
       "target_var": "A^post",
@@ -69,7 +68,7 @@
     {
       "vid": "person",
       "type": "get_adj",
-      "expand_eid_list": ["a", "b"],
+      "expand_eid_list": ["a"],
       "single_op": "f^person",
       "multi_ops": [],
       "target_var": "A^person",

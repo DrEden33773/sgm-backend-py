@@ -52,12 +52,28 @@ def test_ic_6():
 
 
 def test_ic_6_on_sf01():
+    plan_name = "ldbc-ic-6-single-directed-knows.json"
     result = ExecEngine.from_json(
-        (PLAN_DIR / "ldbc-ic-6-no-attr-single-directed-knows.json").read_text(),
+        (PLAN_DIR / plan_name).read_text(),
         storage_adapter=SQLiteStorageAdapter(db_url=LDBC_SNB_INTERACTIVE_DB_URL),
     ).exec()
 
     print(f"\nCOUNT(result) = {len(result)}")
+    print("\nresult:")
+    pprint(result)
+    clear_all_tracked_caches()
+
+
+def test_ic_1_on_sf01():
+    plan_name = "ldbc-ic-1-single-directed-knows.json"
+    result = ExecEngine.from_json(
+        (PLAN_DIR / plan_name).read_text(),
+        storage_adapter=SQLiteStorageAdapter(db_url=LDBC_SNB_INTERACTIVE_DB_URL),
+    ).exec()
+
+    print(f"\nCOUNT(result) = {len(result)}")
+    print("\nresult:")
+    pprint(result)
     clear_all_tracked_caches()
 
 
@@ -66,5 +82,8 @@ if __name__ == "__main__":
     # test_more_triangle_forest()
     # test_ldbc_ic_6_simplified()
     # test_ldbc_ic_6()
-    test_ic_6_on_sf01()
+
+    # test_ic_6_on_sf01()
+    test_ic_1_on_sf01()
+
     pass

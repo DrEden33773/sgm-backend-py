@@ -1,10 +1,5 @@
 {
-  "matching_order": [
-    "person",
-    "tag",
-    "otherPerson",
-    "post"
-  ],
+  "matching_order": ["person", "tag", "otherPerson", "post"],
   "vertices": {
     "person": [
       "Person",
@@ -15,10 +10,7 @@
         "type": "int"
       }
     ],
-    "otherPerson": [
-      "Person",
-      {}
-    ],
+    "otherPerson": ["Person", {}],
     "tag": [
       "Tag",
       {
@@ -28,36 +20,13 @@
         "type": "string"
       }
     ],
-    "post": [
-      "Post",
-      {}
-    ]
+    "post": ["Post", {}]
   },
   "edges": {
-    "a": [
-      "person",
-      "otherPerson",
-      "knows",
-      {}
-    ],
-    "b": [
-      "otherPerson",
-      "person",
-      "knows",
-      {}
-    ],
-    "c": [
-      "post",
-      "otherPerson",
-      "hasCreator",
-      {}
-    ],
-    "d": [
-      "post",
-      "tag",
-      "hasTag",
-      {}
-    ]
+    "a": ["person", "otherPerson", "knows", {}],
+    "b": ["otherPerson", "person", "knows", {}],
+    "c": ["post", "otherPerson", "hasCreator", {}],
+    "d": ["post", "tag", "hasTag", {}]
   },
   "instructions": [
     {
@@ -72,16 +41,11 @@
     {
       "vid": "person",
       "type": "get_adj",
-      "expand_eid_list": [
-        "a",
-        "b"
-      ],
+      "expand_eid_list": ["a", "b"],
       "single_op": "f^person",
       "multi_ops": [],
       "target_var": "A^person",
-      "depend_on": [
-        "f^person"
-      ]
+      "depend_on": ["f^person"]
     },
     {
       "vid": "tag",
@@ -95,15 +59,11 @@
     {
       "vid": "tag",
       "type": "get_adj",
-      "expand_eid_list": [
-        "d"
-      ],
+      "expand_eid_list": ["d"],
       "single_op": "f^tag",
       "multi_ops": [],
       "target_var": "A^tag",
-      "depend_on": [
-        "f^tag"
-      ]
+      "depend_on": ["f^tag"]
     },
     {
       "vid": "otherPerson",
@@ -112,10 +72,7 @@
       "single_op": "A^person",
       "multi_ops": [],
       "target_var": "C^otherPerson",
-      "depend_on": [
-        "A^person",
-        "f^person"
-      ]
+      "depend_on": ["A^person", "f^person"]
     },
     {
       "vid": "otherPerson",
@@ -124,39 +81,23 @@
       "single_op": "C^otherPerson",
       "multi_ops": [],
       "target_var": "f^otherPerson",
-      "depend_on": [
-        "A^person",
-        "C^otherPerson",
-        "f^person"
-      ]
+      "depend_on": ["A^person", "C^otherPerson", "f^person"]
     },
     {
       "vid": "otherPerson",
       "type": "get_adj",
-      "expand_eid_list": [
-        "a",
-        "b",
-        "c"
-      ],
+      "expand_eid_list": ["a", "b", "c"],
       "single_op": "f^otherPerson",
       "multi_ops": [],
       "target_var": "A^otherPerson",
-      "depend_on": [
-        "A^person",
-        "C^otherPerson",
-        "f^otherPerson",
-        "f^person"
-      ]
+      "depend_on": ["A^person", "C^otherPerson", "f^otherPerson", "f^person"]
     },
     {
       "vid": "post",
       "type": "intersect",
       "expand_eid_list": [],
       "single_op": "",
-      "multi_ops": [
-        "A^otherPerson",
-        "A^tag"
-      ],
+      "multi_ops": ["A^otherPerson", "A^tag"],
       "target_var": "T^post",
       "depend_on": [
         "A^otherPerson",
@@ -210,12 +151,7 @@
       "type": "report",
       "expand_eid_list": [],
       "single_op": "",
-      "multi_ops": [
-        "f^otherPerson",
-        "f^person",
-        "f^post",
-        "f^tag"
-      ],
+      "multi_ops": ["f^otherPerson", "f^person", "f^post", "f^tag"],
       "target_var": "f",
       "depend_on": [
         "A^otherPerson",
