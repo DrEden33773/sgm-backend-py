@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from itertools import product
-from typing import cast
+from typing import Iterable, cast
 
 from executor.instr_ops.abc import InstrOperator
 from executor.instr_ops.factory import OperatorFactory
@@ -82,8 +82,12 @@ class ExecEngine:
         )
 
     @staticmethod
-    def preview_result_scale_only(result: list[list[DynGraph]]):
-        pass
+    def project_all_ids(merged_result: Iterable[DynGraph]):
+        ids = [
+            list(result.v_entities.keys()) + list(result.e_entities.keys())
+            for result in merged_result
+        ]
+        dbg.pprint(ids)
 
     @staticmethod
     def dbg_deserialize_json(plan_json: str):

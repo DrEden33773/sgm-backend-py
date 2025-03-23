@@ -60,7 +60,7 @@ def test_ic_6_on_sf01():
 
     print(f"\nCOUNT(result) = {len(result)}")
     print("\nresult:")
-    pprint(result)
+    ExecEngine.project_all_ids(result)
     clear_all_tracked_caches()
 
 
@@ -73,7 +73,7 @@ def test_ic_1_on_sf01():
 
     print(f"\nCOUNT(result) = {len(result)}")
     print("\nresult:")
-    pprint(result)
+    ExecEngine.project_all_ids(result)
     clear_all_tracked_caches()
 
 

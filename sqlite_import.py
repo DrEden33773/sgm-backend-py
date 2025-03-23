@@ -12,7 +12,7 @@ TEST_DATASET = ROOT / "data" / "ldbc-sn-interactive-sf01"
 NODES = TEST_DATASET / "nodes" / "all"
 RELATIONSHIPS = TEST_DATASET / "relationships" / "all"
 
-unique_eid_cnt = 0
+raw_eid_cnt: dict[str, int] = {}
 
 
 def to_typed_attrs(attrs: dict[str, Any]):
@@ -61,7 +61,7 @@ def load_v(file_path: Path, session: Session):
 
 
 def load_e(file_path: Path, session: Session):
-    global unique_eid_cnt
+    global raw_eid_cnt
 
     df = pl.read_csv(file_path, separator="|")
     columns = df.columns
@@ -74,7 +74,12 @@ def load_e(file_path: Path, session: Session):
         attrs = {name: value for name, value in zip(columns[2:], row[2:])}
         src_vid = f"{src_scope}^{row[0]}"
         dst_vid = f"{dst_scope}^{row[1]}"
-        eid = f"{src_vid} -> {dst_vid}"
+
+        raw_eid = f"{src_vid} -> {dst_vid}"
+        raw_eid_cnt.setdefault(raw_eid, 0)
+        eid = f"{raw_eid} @ {raw_eid_cnt[raw_eid]}"
+        raw_eid_cnt[raw_eid] += 1
+
         label = attrs.pop(":TYPE")
         typed_attrs = to_typed_attrs(attrs)
         new_edge = DB_Edge(
@@ -85,7 +90,6 @@ def load_e(file_path: Path, session: Session):
             attrs=typed_attrs,
         )
         new_edges.append(new_edge)
-        unique_eid_cnt += 1
 
     with tqdm(total=len(new_edges), desc=f"Loading edges in: `{file_path}`") as bar:
         for e in new_edges:

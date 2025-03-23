@@ -4,7 +4,7 @@ from functools import lru_cache
 from config import DBG_INSTR
 from schema import Instruction
 
-WIDTH = 40
+WIDTH = 60
 
 
 @lru_cache
