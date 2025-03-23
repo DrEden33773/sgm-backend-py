@@ -11,6 +11,8 @@ dependencies = [
     "sqlmodel>=0.0.24",
     "polars>=1.25.2",
     "tqdm>=4.67.1",
+    "sortedcontainers>=2.4.0",
+    "sortedcontainers-stubs>=2.4.2",
 ]
 
 [tool.uv.sources]

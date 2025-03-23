@@ -44,7 +44,7 @@ def load_v(file_path: Path, session: Session):
     for i in range(len(df)):
         row = df.row(i)
         attrs = {name: value for name, value in zip(columns[1:], row[1:])}
-        vid = f"{scope}_{row[0]}"
+        vid = f"{scope}^{row[0]}"
         label = str(attrs.pop(":LABEL"))
         typed_attrs = to_typed_attrs(attrs)
         new_vertex = DB_Vertex(vid=vid, label=label, attrs=typed_attrs)
@@ -72,9 +72,9 @@ def load_e(file_path: Path, session: Session):
     for i in range(len(df)):
         row = df.row(i)
         attrs = {name: value for name, value in zip(columns[2:], row[2:])}
-        eid = str(unique_eid_cnt)
-        src_vid = f"{src_scope}_{row[0]}"
-        dst_vid = f"{dst_scope}_{row[1]}"
+        src_vid = f"{src_scope}^{row[0]}"
+        dst_vid = f"{dst_scope}^{row[1]}"
+        eid = f"{src_vid} -> {dst_vid}"
         label = attrs.pop(":TYPE")
         typed_attrs = to_typed_attrs(attrs)
         new_edge = DB_Edge(

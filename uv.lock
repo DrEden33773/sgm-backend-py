@@ -19,6 +19,8 @@ dependencies = [
     { name = "neomodel-stubs" },
     { name = "networkx" },
     { name = "polars" },
+    { name = "sortedcontainers" },
+    { name = "sortedcontainers-stubs" },
     { name = "sqlmodel" },
     { name = "tqdm" },
 ]
@@ -29,6 +31,8 @@ requires-dist = [
     { name = "neomodel-stubs", git = "https://github.com/laurentS/neomodel-stubs" },
     { name = "networkx", specifier = ">=3.4.2" },
     { name = "polars", specifier = ">=1.25.2" },
+    { name = "sortedcontainers", specifier = ">=2.4.0" },
+    { name = "sortedcontainers-stubs", specifier = ">=2.4.2" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
@@ -164,6 +168,28 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5f/57/df1c9157c8d5a05117e455d66fd7cf6dbc46974f832b1058ed4856785d8a/pytz-2025.1.tar.gz", hash = "sha256:c2db42be2a2518b28e65f9207c4d05e6ff547d1efa4086469ef855e4ab70178e", size = 319617 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/38/ac33370d784287baa1c3d538978b5e2ea064d4c1b93ffbd12826c190dd10/pytz-2025.1-py2.py3-none-any.whl", hash = "sha256:89dd22dca55b46eac6eda23b2d72721bf1bdfef212645d81513ef5d03038de57", size = 507930 },
+]
+
+[[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575 },
+]
+
+[[package]]
+name = "sortedcontainers-stubs"
+version = "2.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sortedcontainers" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f3/05/ca2588cc4d7bbe49819c0da58dc9ea5a95b1cec21278977cb4175c27427b/sortedcontainers_stubs-2.4.2.tar.gz", hash = "sha256:c24e33877effa5a3eb85357112496ba33a0b681c05e0d5d3745664fd3be75d82", size = 7285 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/56/1e/38bb079b145c60d500c012f314180d5025a936c5eda0a7c73ffd3885f1f9/sortedcontainers_stubs-2.4.2-py3-none-any.whl", hash = "sha256:6cdbcf9c71198729dd6c0a8a7dc9742768f25b49384b91965d716a9d16ca7b2a", size = 8850 },
 ]
 
 [[package]]
