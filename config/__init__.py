@@ -2,6 +2,10 @@
 配置文件
 """
 
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).parent.parent.absolute()
+
 SIMPLE_TEST_DB_URL = "sqlite:///simple_test_data_graph.db"
 
 LDBC_SNB_INTERACTIVE_DB_URL = "sqlite:///ldbc_sn_interactive_sf01.db"
