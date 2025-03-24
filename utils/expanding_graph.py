@@ -181,11 +181,6 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         unused_set, incomplete_set = unused.get_vid_set(), incomplete.get_vid_set()
 
         if not unused_set <= incomplete_set:
-            if not unused_set >= incomplete_set:
-                # 没有共同点, 采用另一个算法
-                return ExpandGraph.union_then_intersect_on_connective_v(
-                    potential_unused, potential_incomplete
-                )
             # 交换位置
             unused, incomplete = incomplete, unused
 
@@ -221,12 +216,6 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
         left_dyn_graph = left_expand_graph.dyn_graph
         right_dyn_graph = right_expand_graph.dyn_graph
-
-        if left_dyn_graph.get_vid_set() & right_dyn_graph.get_vid_set():
-            # 两个图存在 `公共点`, 转移到另一个算法
-            return ExpandGraph.intersect_then_union_on_same_v(
-                left_expand_graph, right_expand_graph
-            )
 
         left_vs = list(left_dyn_graph.v_entities.values())
         right_vs = list(right_dyn_graph.v_entities.values())
