@@ -64,3 +64,15 @@ def test_ic_4_on_sf01():
     ExecEngine.project_all_ids(result)
     print(f"\nCOUNT(result) = {len(result)}\n")
     clear_all_tracked_caches()
+
+
+def test_ic_5_on_sf01():
+    plan_name = "ldbc-ic-5-single-directed-knows.json"
+    result = ExecEngine.from_json(
+        (PLAN_DIR / plan_name).read_text(),
+        storage_adapter=SQLiteStorageAdapter(db_url=LDBC_SNB_INTERACTIVE_DB_URL),
+    ).exec()
+
+    ExecEngine.project_all_ids(result)
+    print(f"\nCOUNT(result) = {len(result)}\n")
+    clear_all_tracked_caches()
