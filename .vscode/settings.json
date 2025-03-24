@@ -17,6 +17,7 @@
         "pycache",
         "Pylance",
         "sqlmodel",
+        "Tagclass",
         "titlecase",
         "venv",
         "winget"
