@@ -2,7 +2,7 @@ from typing import override
 
 from executor.instr_ops.abc import InstrOperator
 from executor.matching_ctx.buckets import C_Bucket, T_Bucket
-from schema import Instruction
+from schema import DataVertex, Instruction
 from schema.basic import VarPrefix
 from utils import dbg
 from utils.dyn_graph import DynGraph
@@ -40,9 +40,12 @@ class IntersectOperator(InstrOperator):
             # 如果 A_bucket 为空, 说明没有邻接点, 那么就直接返回
             return
 
-        loaded_vertices = self.load_vertices(instr)
+        loaded_vs, loaded_v_pat_strs = self.load_vertices(instr)
         C_bucket = C_Bucket.build_from_A(
-            A_bucket, curr_pat_vid=instr.vid, loaded_vertices=loaded_vertices
+            A_bucket,
+            curr_pat_vid=instr.vid,
+            loaded_vs=loaded_vs,
+            loaded_v_pat_strs=loaded_v_pat_strs,
         )
         self.ctx.update_C_pool(instr.target_var, C_bucket)
 
@@ -78,12 +81,12 @@ class IntersectOperator(InstrOperator):
         # 初始化 ctx 中 C_pool 对应位置
         self.ctx.init_C_pool(instr.target_var)
 
-        loaded_vertices = self.load_vertices(instr)
+        loaded_vs, loaded_v_pat_strs = self.load_vertices(instr)
         T_bucket = self.ctx.resolve_T_pool(instr.single_op)
         if not T_Bucket:
             return
 
-        C_bucket = C_Bucket.build_from_T(T_bucket, loaded_vertices)
+        C_bucket = C_Bucket.build_from_T(T_bucket, loaded_vs, loaded_v_pat_strs)
         self.ctx.update_C_pool(instr.target_var, C_bucket)
 
     """ ========== Helpers ========== """
@@ -91,8 +94,10 @@ class IntersectOperator(InstrOperator):
     def load_vertices(self, instr: Instruction):
         pattern_v = self.ctx.get_pattern_v(instr.vid)
         label, attr = pattern_v.label, pattern_v.attr
-
+        loaded_vs: list[DataVertex] = []
         if not attr:
-            return self.storage_adapter.load_v(label)
+            loaded_vs = self.storage_adapter.load_v(label)
         else:
-            return self.storage_adapter.load_v_with_attr(label, attr)
+            loaded_vs = self.storage_adapter.load_v_with_attr(label, attr)
+        loaded_v_pat_strs = [pattern_v.vid for _ in range(len(loaded_vs))]
+        return loaded_vs, loaded_v_pat_strs

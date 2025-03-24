@@ -2,7 +2,7 @@
 配置文件
 """
 
-SIMPLE_TEST_DB_URL = "sqlite:///data_graph.db"
+SIMPLE_TEST_DB_URL = "sqlite:///simple_test_data_graph.db"
 
 LDBC_SNB_INTERACTIVE_DB_URL = "sqlite:///ldbc_sn_interactive_sf01.db"
 
@@ -17,3 +17,6 @@ DIRECTED_EDGE_SUPPORT = True
 
 DBG_INSTR = True
 """ 是否调试 `指令信息` """
+
+USE_INCREMENTAL_EDGES_LOADING = True
+""" 是否使用增量加载边的方式 """

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 from schema import DataEdge, DataVertex, EdgeBase, Eid, VertexBase, Vid
 
@@ -45,9 +45,9 @@ class VNode:
         self.e_out |= other.e_out
         return self
 
-    # def __hash__(self) -> int:
-    #     """VNode 的哈希值"""
-    #     return hash(tuple(sorted(self.e_in | self.e_out)))
+    def __hash__(self) -> int:
+        """VNode 的哈希值"""
+        return hash(tuple(sorted(self.e_in | self.e_out)))
 
 
 @dataclass
@@ -63,20 +63,34 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
     点实体 
     - { vid -> Vertex }
     """
+
     e_entities: dict[Eid, EType] = field(default_factory=dict)
     """ 
     边实体 
     - { eid -> Edge }
     """
+
+    v_2_pattern: dict[Vid, str] = field(default_factory=dict)
+    """ 
+    点模式映射
+    - { vid -> pattern_str }
+    """
+
+    e_2_pattern: dict[Eid, str] = field(default_factory=dict)
+    """
+    边模式映射
+    - { eid -> pattern_str }
+    """
+
     adj_table: dict[Vid, VNode] = field(default_factory=dict)
     """ 
     邻接表 
     - { vid -> VNode }
     """
 
-    # def __hash__(self):
-    #     """图的哈希值"""
-    #     return hash(tuple(sorted(self.adj_table.items())))
+    def __hash__(self):
+        """图的哈希值"""
+        return hash(tuple(sorted(self.adj_table.items())))
 
     """ ========== 底层功能 ========== """
 
@@ -137,33 +151,46 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
     """ ========== 基本操作 ========== """
 
-    def update_v(self, vertex: VType):
+    def update_v(self, vertex: VType, pat_str: Optional[str] = None):
         """更新点信息"""
 
         self.v_entities[vertex.vid] = vertex
         self.adj_table.setdefault(vertex.vid, VNode())
+        if pat_str:
+            self.v_2_pattern[vertex.vid] = pat_str
 
         return self
 
-    def update_v_batch(self, vertices: list[VType]):
+    def update_v_batch(
+        self, vertices: list[VType], pat_strs: Optional[list[str]] = None
+    ):
         """批量更新点信息"""
 
-        for vertex in vertices:
-            self.update_v(vertex)
+        if pat_strs is None:
+            for vertex in vertices:
+                self.update_v(vertex)
+        else:
+            assert len(vertices) == len(pat_strs)
+            for vertex, pat_str in zip(vertices, pat_strs):
+                self.update_v(vertex, pat_str)
 
         return self
 
-    def update_e(self, edge: EType):
+    def update_e(self, edge: EType, pat_str: Optional[str] = None):
         """更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
-        self.e_entities[edge.eid] = edge
-
         if self.has_all_vids([edge.src_vid, edge.dst_vid]):
+            self.e_entities[edge.eid] = edge
+
             # src_v -[edge]-> dst_v
             src_v = self.adj_table.setdefault(edge.src_vid, VNode())
             dst_v = self.adj_table.setdefault(edge.dst_vid, VNode())
             src_v.e_out.add(edge.eid)
             dst_v.e_in.add(edge.eid)
+
+            if pat_str:
+                self.e_2_pattern[edge.eid] = pat_str
+
             return self
 
         if self.has_vid(edge.src_vid):
@@ -178,11 +205,16 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             # ? -[edge]-> ?
             raise RuntimeError(COMPLETELY_DANGLE_BASE.format(edge.eid))
 
-    def update_e_batch(self, edges: list[EType]):
+    def update_e_batch(self, edges: list[EType], pat_strs: Optional[list[str]] = None):
         """批量更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
-        for edge in edges:
-            self.update_e(edge)
+        if pat_strs is None:
+            for edge in edges:
+                self.update_e(edge)
+        else:
+            assert len(edges) == len(pat_strs)
+            for edge, pat_str in zip(edges, pat_strs):
+                self.update_e(edge, pat_str)
 
         return self
 
@@ -192,7 +224,7 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             return
 
         if not has_handled_adj_table:
-            # 摘除关联边
+            # 摘除边
             for v in self.adj_table.values():
                 v.e_in.discard(eid)
                 v.e_out.discard(eid)
@@ -246,6 +278,20 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             if not v_node.e_out <= other.adj_table[vid].e_out:
                 return False
 
+        # 检验 `点模式映射`
+        for vid, v_pat in self.v_2_pattern.items():
+            if vid not in other.v_2_pattern:
+                return False
+            if v_pat != other.v_2_pattern[vid]:
+                return False
+
+        # 检验 `边模式映射`
+        for eid, e_pat in self.e_2_pattern.items():
+            if eid not in other.e_2_pattern:
+                return False
+            if e_pat != other.e_2_pattern[eid]:
+                return False
+
         return True
 
     def __ge__(self, other: "DynGraph[VType, EType]"):
@@ -264,6 +310,18 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             if not v_node.e_out < other.adj_table[vid].e_out:
                 return False
 
+        for vid, v_pat in self.v_2_pattern.items():
+            if vid not in other.v_2_pattern:
+                return False
+            if v_pat != other.v_2_pattern[vid]:
+                return False
+
+        for eid, e_pat in self.e_2_pattern.items():
+            if eid not in other.e_2_pattern:
+                return False
+            if e_pat != other.e_2_pattern[eid]:
+                return False
+
         return True
 
     def __gt__(self, other: "DynGraph[VType, EType]"):
@@ -272,16 +330,16 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         return other.__lt__(self)
 
     def __eq__(self, other: Any):
-        """图与图的相等判断 (equal)"""
-
         if not isinstance(other, DynGraph):
             return False
         else:
-            return self.adj_table == other.adj_table
+            return (
+                self.adj_table == other.adj_table
+                and self.e_2_pattern == other.e_2_pattern
+                and self.v_2_pattern == other.v_2_pattern
+            )
 
     def __ne__(self, other: Any):
-        """图与图的非相等判断 (not-equal)"""
-
         return not self.__eq__(other)
 
     def __or__(self, other: "DynGraph[VType, EType]"):
@@ -290,6 +348,8 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         res = DynGraph(
             v_entities={**self.v_entities, **other.v_entities},
             e_entities={**self.e_entities, **other.e_entities},
+            v_2_pattern={**self.v_2_pattern, **other.v_2_pattern},
+            e_2_pattern={**self.e_2_pattern, **other.e_2_pattern},
         )
 
         # 单独处理 邻接表
@@ -309,6 +369,8 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
         self.v_entities.update(other.v_entities)
         self.e_entities.update(other.e_entities)
+        self.v_2_pattern.update(other.v_2_pattern)
+        self.e_2_pattern.update(other.e_2_pattern)
 
         # 单独处理 邻接表
         for vid, v_node in other.adj_table.items():

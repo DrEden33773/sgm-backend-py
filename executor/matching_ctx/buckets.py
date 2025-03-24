@@ -71,7 +71,9 @@ class A_Bucket:
     all_matched: list[DynGraph] = field(default_factory=list)
     matched_idx_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
 
-    next_pat_grouped_edges: dict[PgVid, set[DgEdge]] = field(default_factory=dict)
+    next_pat_grouped_edges: dict[PgVid, list[DgEdge]] = field(default_factory=dict)
+    e_2_pat_str: dict[PgEid, str] = field(default_factory=dict)
+
     next_pat_grouped_expanding: dict[PgVid, list[ExpandGraph]] = field(
         default_factory=dict
     )
@@ -84,11 +86,11 @@ class A_Bucket:
             f_bucket.matched_with_pivots,
         )
 
-    def load_es_on_src(self):
-        pass
-
     def incremental_load_new_edges(
-        self, pattern_es: list[PatternEdge], storage_adapter: StorageAdapter
+        self,
+        pattern_es: list[PatternEdge],
+        pattern_vs: dict[PgVid, PatternVertex],
+        storage_adapter: StorageAdapter,
     ):
         connected_data_vids: set[DgVid] = set()
 
@@ -103,65 +105,114 @@ class A_Bucket:
                 # 迭代 `模式边`
                 for pat_e in pattern_es:
                     label, attr = pat_e.label, pat_e.attr
-                    next_vid_grouped_connective_edges: dict[DgVid, list[DataEdge]] = {}
+                    next_vid_grouped_conn_es: dict[DgVid, list[DataEdge]] = {}
+                    next_vid_grouped_conn_pat_strs: dict[DgVid, list[str]] = {}
 
                     if self.curr_pat_vid == pat_e.src_vid:
                         next_pat_vid = pat_e.dst_vid
-                        matched_data_es = (
-                            storage_adapter.load_e_by_src_vid(pivot_vid, label)
-                            if not attr
-                            else storage_adapter.load_e_by_src_vid_with_attr(
-                                pivot_vid, label, attr
-                            )
-                        )
-                        # 按照 `下一个数据点` 分组
-                        for e in matched_data_es:
-                            next_vid_grouped_connective_edges.setdefault(
-                                e.dst_vid, []
-                            ).append(e)
-                        if not DIRECTED_EDGE_SUPPORT:
-                            # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
-                            additional = (
-                                storage_adapter.load_e_by_dst_vid(pivot_vid, label)
-                                if not attr
-                                else storage_adapter.load_e_by_dst_vid_with_attr(
-                                    pivot_vid, label, attr
-                                )
-                            )
-                            # 对 `追加数据边` 分组
-                            for e in additional:
-                                next_vid_grouped_connective_edges.setdefault(
-                                    e.src_vid, []
-                                ).append(e)
-                            matched_data_es += additional
-                    else:
-                        next_pat_vid = pat_e.src_vid
-                        matched_data_es = (
-                            storage_adapter.load_e_by_dst_vid(pivot_vid, label)
-                            if not attr
-                            else storage_adapter.load_e_by_dst_vid_with_attr(
-                                pivot_vid, label, attr
-                            )
-                        )
-                        # 按照 `下一个数据点` 分组
-                        for e in matched_data_es:
-                            next_vid_grouped_connective_edges.setdefault(
-                                e.src_vid, []
-                            ).append(e)
-                        if not DIRECTED_EDGE_SUPPORT:
-                            # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
-                            additional = (
+                        # 挑选 `可连接到下一个模式点` 的边
+                        matched_data_es = [
+                            e
+                            for e in (
                                 storage_adapter.load_e_by_src_vid(pivot_vid, label)
                                 if not attr
                                 else storage_adapter.load_e_by_src_vid_with_attr(
                                     pivot_vid, label, attr
                                 )
                             )
+                            if does_data_v_satisfy_pattern(
+                                e.dst_vid,
+                                next_pat_vid,
+                                pattern_vs,
+                                storage_adapter,
+                            )
+                        ]
+                        # 按照 `下一个数据点` 分组
+                        for e in matched_data_es:
+                            next_vid_grouped_conn_es.setdefault(e.dst_vid, []).append(e)
+                            next_vid_grouped_conn_pat_strs.setdefault(
+                                e.dst_vid, []
+                            ).append(pat_e.eid)
+                        if not DIRECTED_EDGE_SUPPORT:
+                            # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
+                            # 挑选 `可连接到下一个模式点` 的边
+                            additional = [
+                                e
+                                for e in (
+                                    storage_adapter.load_e_by_dst_vid(pivot_vid, label)
+                                    if not attr
+                                    else storage_adapter.load_e_by_dst_vid_with_attr(
+                                        pivot_vid, label, attr
+                                    )
+                                )
+                                if does_data_v_satisfy_pattern(
+                                    e.src_vid,
+                                    next_pat_vid,
+                                    pattern_vs,
+                                    storage_adapter,
+                                )
+                            ]
                             # 对 `追加数据边` 分组
                             for e in additional:
-                                next_vid_grouped_connective_edges.setdefault(
+                                next_vid_grouped_conn_es.setdefault(
+                                    e.src_vid, []
+                                ).append(e)
+                                next_vid_grouped_conn_pat_strs.setdefault(
+                                    e.src_vid, []
+                                ).append(pat_e.eid)
+                            matched_data_es += additional
+                    else:
+                        next_pat_vid = pat_e.src_vid
+                        # 挑选 `可连接到下一个模式点` 的边
+                        matched_data_es = [
+                            e
+                            for e in (
+                                storage_adapter.load_e_by_dst_vid(pivot_vid, label)
+                                if not attr
+                                else storage_adapter.load_e_by_dst_vid_with_attr(
+                                    pivot_vid, label, attr
+                                )
+                            )
+                            if does_data_v_satisfy_pattern(
+                                e.src_vid,
+                                next_pat_vid,
+                                pattern_vs,
+                                storage_adapter,
+                            )
+                        ]
+                        # 按照 `下一个数据点` 分组
+                        for e in matched_data_es:
+                            next_vid_grouped_conn_es.setdefault(e.src_vid, []).append(e)
+                            next_vid_grouped_conn_pat_strs.setdefault(
+                                e.src_vid, []
+                            ).append(pat_e.eid)
+                        if not DIRECTED_EDGE_SUPPORT:
+                            # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
+                            # 挑选 `可连接到下一个模式点` 的边
+                            additional = [
+                                e
+                                for e in (
+                                    storage_adapter.load_e_by_src_vid(pivot_vid, label)
+                                    if not attr
+                                    else storage_adapter.load_e_by_src_vid_with_attr(
+                                        pivot_vid, label, attr
+                                    )
+                                )
+                                if does_data_v_satisfy_pattern(
+                                    e.dst_vid,
+                                    next_pat_vid,
+                                    pattern_vs,
+                                    storage_adapter,
+                                )
+                            ]
+                            # 对 `追加数据边` 分组
+                            for e in additional:
+                                next_vid_grouped_conn_es.setdefault(
                                     e.dst_vid, []
                                 ).append(e)
+                                next_vid_grouped_conn_pat_strs.setdefault(
+                                    e.dst_vid, []
+                                ).append(pat_e.eid)
                             matched_data_es += additional
 
                     if not matched_data_es:
@@ -171,9 +222,10 @@ class A_Bucket:
 
                     # 开始构造 `扩张图`
                     # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩张图`
-                    for edges in next_vid_grouped_connective_edges.values():
+                    for key, edges in next_vid_grouped_conn_es.items():
                         expanding_dg = ExpandGraph(deepcopy(matched_dg))
-                        expanding_dg.update_valid_dangling_edges(edges)
+                        pat_strs = next_vid_grouped_conn_pat_strs[key]
+                        expanding_dg.update_valid_dangling_edges(edges, pat_strs)
                         self.next_pat_grouped_expanding.setdefault(
                             next_pat_vid, []
                         ).append(expanding_dg)
@@ -183,15 +235,17 @@ class A_Bucket:
                     connected_data_vids.add(pivot_vid)
 
         self.all_matched.clear()
-        self.next_pat_grouped_edges.clear()
 
         return connected_data_vids
 
-    def with_new_edges(self, new_edges: list[DgEdge], next_pat_vid: PgEid):
-        """添加新边"""
+    def with_new_edges_of_pattern(
+        self, new_edges: list[DgEdge], next_pat_vid: PgEid, pattern_e: PatternEdge
+    ):
+        """添加新边 (指定模式)"""
 
-        curr_group = self.next_pat_grouped_edges.setdefault(next_pat_vid, set())
-        curr_group.update(new_edges)
+        self.next_pat_grouped_edges.setdefault(next_pat_vid, []).extend(new_edges)
+        for e in new_edges:
+            self.e_2_pat_str[e.eid] = pattern_e.eid
         return self
 
     def select_connective_edges_and_graphs(
@@ -209,18 +263,18 @@ class A_Bucket:
         # 迭代 `已匹配` 的数据图
         for dg in self.all_matched:
             # 分组迭代 `新增边`
-            for next_pat_vid, edges in self.next_pat_grouped_edges.items():
+            for next_pat_vid, es in self.next_pat_grouped_edges.items():
                 is_curr_dg_expandable = False
-                next_vid_grouped_connective_edges: dict[DgVid, list[DataEdge]] = {}
+                next_vid_grouped_conn_es: dict[DgVid, list[DataEdge]] = {}
 
-                for edge in edges:
+                for e in es:
                     # 如果这条边已经存在, 直接跳过
-                    if edge.eid in dg.e_entities:
+                    if e.eid in dg.e_entities:
                         continue
 
                     # 挑选出 `可连接的` 的边 (同时这条边连接的点, 必须满足 curr_pat_vid 的模式约束)
                     if (
-                        connective_e_vid := dg.get_first_connective_vid_of_e(edge)
+                        connective_e_vid := dg.get_first_connective_vid_of_e(e)
                     ) and does_data_v_satisfy_pattern(
                         connective_e_vid,
                         self.curr_pat_vid,
@@ -228,17 +282,15 @@ class A_Bucket:
                         storage_adapter,
                     ):
                         dangling_e_vid = (
-                            edge.dst_vid
-                            if connective_e_vid == edge.src_vid
-                            else edge.src_vid
+                            e.dst_vid if connective_e_vid == e.src_vid else e.src_vid
                         )
                         # 挑选 `可连接到下一个模式点` 的边
                         if does_data_v_satisfy_pattern(
                             dangling_e_vid, next_pat_vid, pattern_vs, storage_adapter
                         ):
-                            next_vid_grouped_connective_edges.setdefault(
+                            next_vid_grouped_conn_es.setdefault(
                                 dangling_e_vid, []
-                            ).append(edge)
+                            ).append(e)
                             is_curr_dg_expandable = True
                             # 更新 `已连接点集`
                             connected_data_vids.add(connective_e_vid)
@@ -249,9 +301,14 @@ class A_Bucket:
 
                 # 指定位置, 构造 `扩张图`
                 # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩张图`
-                for connective_edges in next_vid_grouped_connective_edges.values():
+                for conn_es in next_vid_grouped_conn_es.values():
                     expanding_dg = ExpandGraph(deepcopy(dg))
-                    expanding_dg.update_valid_dangling_edges(connective_edges)
+                    conn_e_pat_strs = [
+                        self.e_2_pat_str[e.eid]
+                        for e in conn_es
+                        if e.eid in self.e_2_pat_str
+                    ]
+                    expanding_dg.update_valid_dangling_edges(conn_es, conn_e_pat_strs)
                     self.next_pat_grouped_expanding.setdefault(next_pat_vid, []).append(
                         expanding_dg
                     )
@@ -274,7 +331,8 @@ class C_Bucket:
         cls,
         A_bucket: A_Bucket,
         curr_pat_vid: PgVid,
-        loaded_vertices: list[DataVertex],
+        loaded_vs: list[DataVertex],
+        loaded_v_pat_strs: list[str],
     ):
         # 从 A_bucket 中弹出当前分组
         curr_group = A_bucket.next_pat_grouped_expanding.pop(curr_pat_vid, [])
@@ -286,7 +344,9 @@ class C_Bucket:
 
         for idx, expanding in enumerate(curr_group):
             # 与给定点集 `loaded_vertices` 求交
-            valid_targets = expanding.update_valid_target_vertices(loaded_vertices)
+            valid_targets = expanding.update_valid_target_vertices(
+                loaded_vs, loaded_v_pat_strs
+            )
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
@@ -300,7 +360,12 @@ class C_Bucket:
         return cls(all_expanded, expanded_with_pivots)
 
     @classmethod
-    def build_from_T(cls, T_bucket: "T_Bucket", loaded_vertices: list[DataVertex]):
+    def build_from_T(
+        cls,
+        T_bucket: "T_Bucket",
+        loaded_vertices: list[DataVertex],
+        loaded_v_pat_strs: list[str],
+    ):
         if not T_bucket.expanding_graphs:
             return cls()
 
@@ -309,7 +374,9 @@ class C_Bucket:
 
         for idx, expanding in enumerate(T_bucket.expanding_graphs):
             # 与给定点集 `loaded_vertices` 求交
-            valid_targets = expanding.update_valid_target_vertices(loaded_vertices)
+            valid_targets = expanding.update_valid_target_vertices(
+                loaded_vertices, loaded_v_pat_strs
+            )
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
@@ -333,7 +400,6 @@ class T_Bucket:
     """
 
     target_pat_vid: PgVid
-
     expanding_graphs: list[ExpandGraph] = field(default_factory=list)
 
     @classmethod

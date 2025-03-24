@@ -1,6 +1,6 @@
 from typing import override
 
-from config import DIRECTED_EDGE_SUPPORT
+from config import DIRECTED_EDGE_SUPPORT, USE_INCREMENTAL_EDGES_LOADING
 from executor.instr_ops.abc import InstrOperator
 from executor.matching_ctx import A_Bucket
 from executor.matching_ctx.buckets import does_data_v_satisfy_pattern
@@ -12,7 +12,9 @@ from utils.dyn_graph import DynGraph
 class GetAdjOperator(InstrOperator):
     """GetAdj 指令算子"""
 
-    def new_execute(self, instr: Instruction, result: list[list[DynGraph]] = []):
+    def incremental_execute(
+        self, instr: Instruction, result: list[list[DynGraph]] = []
+    ):
         """执行指令 (新逻辑: 增量边载入)"""
 
         dbg.pprint_instr(instr)
@@ -21,6 +23,7 @@ class GetAdjOperator(InstrOperator):
         _, curr_pat_vid = self.resolve_var(instr.single_op)
 
         pattern_es = self.ctx.get_pattern_e_batch(instr.expand_eid_list)
+        pattern_vs = self.ctx.pattern_vs
         f_bucket = self.ctx.resolve_f_bucket(instr.single_op)
         A_bucket = A_Bucket.from_f_bucket(curr_pat_vid, f_bucket)
 
@@ -29,7 +32,7 @@ class GetAdjOperator(InstrOperator):
 
         # 直接调用新的 `增量边载入` 逻辑
         connected_data_vids = A_bucket.incremental_load_new_edges(
-            pattern_es, self.storage_adapter
+            pattern_es, pattern_vs, self.storage_adapter
         )
 
         # 更新容器 (以及 `已被扩张的点集`)
@@ -40,7 +43,8 @@ class GetAdjOperator(InstrOperator):
     def execute(self, instr: Instruction, result: list[list[DynGraph]] = []):
         """执行指令"""
 
-        return self.new_execute(instr, result)
+        if USE_INCREMENTAL_EDGES_LOADING:
+            return self.incremental_execute(instr, result)
 
         dbg.pprint_instr(instr)
 
@@ -98,7 +102,7 @@ class GetAdjOperator(InstrOperator):
                 else pattern_e.src_vid
             )
 
-            A_bucket.with_new_edges(data_es, next_pat_vid)
+            A_bucket.with_new_edges_of_pattern(data_es, next_pat_vid, pattern_e)
 
         # A_bucket 过滤: 选出 `可连接的边` 和 `被连接的图`
         connected_data_vids = A_bucket.select_connective_edges_and_graphs(

@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Optional
 
 from executor.matching_ctx.buckets import A_Bucket, C_Bucket, T_Bucket, f_Bucket
 from executor.matching_ctx.type_aliases import DgVid, PgEid, PgVid
@@ -79,15 +78,17 @@ class MatchingCtx:
         self.F_pool[key] = f_Bucket()
 
     def append_to_f_pool(
-        self, target_var: str, matched_dg: DynGraph, pivot: Optional[DgVid] = None
+        self,
+        target_var: str,
+        matched_dg: DynGraph,
+        pivot: DgVid,
     ):
         """Init: 更新 f_pool 成功匹配部分"""
         key = resolve_var_name(target_var)
         next_idx = len(self.F_pool[key].all_matched)
-        self.F_pool[key].all_matched.append(matched_dg)
-        self.F_pool[key].matched_with_pivots.setdefault(next_idx, []).append(
-            pivot
-        ) if pivot else None
+        f_bucket = self.F_pool[key]
+        f_bucket.all_matched.append(matched_dg)
+        f_bucket.matched_with_pivots.setdefault(next_idx, []).append(pivot)
 
     def update_f_pool(self, target_var: str, f_bucket: f_Bucket):
         """Foreach: 更新 F_pool"""

@@ -57,8 +57,21 @@ class ExecEngine:
 
         if not unjoined:
             return result
-        if len(unjoined) == 1:
-            return unjoined[0]
+
+        def could_match_the_whole_pattern(graph: DynGraph):
+            graph_v_pat_cnt = {
+                v_pat: list(graph.v_2_pattern.values()).count(v_pat)
+                for v_pat in set(graph.v_2_pattern.values())
+            }
+            graph_e_pat_cnt = {
+                e_pat: list(graph.e_2_pattern.values()).count(e_pat)
+                for e_pat in set(graph.e_2_pattern.values())
+            }
+            plan_v_pat_cnt = {v_pat: 1 for v_pat in self.plan_data.pattern_vs}
+            plan_e_pat_cnt = {e_pat: 1 for e_pat in self.plan_data.pattern_es}
+            return (
+                graph_v_pat_cnt == plan_v_pat_cnt and graph_e_pat_cnt == plan_e_pat_cnt
+            )
 
         # 全排列组合
         for combination in product(*unjoined):
@@ -70,12 +83,7 @@ class ExecEngine:
 
         # 这里最后再过滤一遍, 合并好的图, 规模应该完全与 `pattern` 一致
         # 点数一致, 边数一致
-        return list(
-            graph
-            for graph in result
-            if graph.get_v_count() == len(self.matching_ctx.pattern_vs)
-            and graph.get_e_count() == len(self.matching_ctx.pattern_es)
-        )
+        return list(graph for graph in result if could_match_the_whole_pattern(graph))
 
     @staticmethod
     def project_all_ids(merged_result: Iterable[DynGraph]):
@@ -83,6 +91,7 @@ class ExecEngine:
             list(result.v_entities.keys()) + list(result.e_entities.keys())
             for result in merged_result
         ]
+        print()
         dbg.pprint(ids)
 
     @staticmethod
