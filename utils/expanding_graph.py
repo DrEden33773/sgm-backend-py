@@ -49,7 +49,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
     def update_valid_dangling_edges(self, dangling_edges: list[EType]):
         """
-        更新 `合法半垂悬边`, 返回 `不合法半垂悬边`
+        更新 `合法半垂悬边`, 返回 `合法半垂悬边`
         """
 
         @track_lru_cache_annotated
@@ -73,11 +73,11 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         # 因为这个函数的目的, 是 `保留` edges 连接的 `图模式`
         # 更新 `dyn_graph` 交给 `to_dyn_graph_cloned` 来做
 
-        return illegal_edges
+        return legal_edges
 
     def update_valid_target_vertices(self, target_vertices: list[VType]):
         """
-        更新 `合法扩张终点`, 返回 `不合法扩张终点`
+        更新 `合法扩张终点`, 返回 `合法扩张终点`
 
         - 只有在 `垂悬边` 中的点才会被添加到 `邻接表` 中
         """
@@ -111,7 +111,7 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             if e.dst_vid in self.target_v_entities:
                 self.target_v_adj_table.setdefault(e.dst_vid, VNode()).e_in.add(e.eid)
 
-        return illegal_vertices
+        return legal_targets
 
     def to_dyn_graph_cloned(self):
         new_dyn_graph = deepcopy(self.dyn_graph)

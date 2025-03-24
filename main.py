@@ -80,10 +80,10 @@ def test_ic_1_on_sf01():
 if __name__ == "__main__":
     # test_triangle_forest()
     # test_more_triangle_forest()
-    # test_ldbc_ic_6_simplified()
-    # test_ldbc_ic_6()
+    # test_ic_6_simplified()
+    # test_ic_6()
 
-    # test_ic_6_on_sf01()
-    test_ic_1_on_sf01()
+    test_ic_6_on_sf01()
+    # test_ic_1_on_sf01()
 
     pass

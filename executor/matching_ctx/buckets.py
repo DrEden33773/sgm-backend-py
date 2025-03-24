@@ -1,9 +1,9 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Optional
 
+from config import DIRECTED_EDGE_SUPPORT
 from executor.matching_ctx.type_aliases import DgEdge, DgVid, PgEid, PgVid
-from schema import DataEdge, DataVertex, PatternVertex
+from schema import DataEdge, DataVertex, PatternEdge, PatternVertex
 from schema.basic import str_op_to_operator
 from storage.abc import StorageAdapter
 from utils.dyn_graph import DynGraph
@@ -47,10 +47,7 @@ class f_Bucket:
     """枚举目标 (f) 桶"""
 
     all_matched: list[DynGraph] = field(default_factory=list)
-    next_pivot: Optional[DgVid] = None
-
-    def __post_init__(self):
-        self.append_matched = self.all_matched.append
+    matched_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
 
     @classmethod
     def from_C_bucket(cls, C_bucket: "C_Bucket"):
@@ -58,7 +55,12 @@ class f_Bucket:
 
         # 现在的算法, 会在 C_bucket 阶段, 直接完成基于 `下一个数据点` 的 `分裂`
         all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
-        return cls(all_matched)
+        matched_with_pivots = {
+            idx: C_bucket.expanded_idx_with_pivots[idx]
+            for idx, _ in enumerate(C_bucket.all_expanded)
+        }
+
+        return cls(all_matched, matched_with_pivots)
 
 
 @dataclass
@@ -66,8 +68,8 @@ class A_Bucket:
     """邻接组合 (A) 桶"""
 
     curr_pat_vid: PgVid
-    curr_pivot_vid: Optional[DgVid] = None
     all_matched: list[DynGraph] = field(default_factory=list)
+    matched_idx_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
 
     next_pat_grouped_edges: dict[PgVid, set[DgEdge]] = field(default_factory=dict)
     next_pat_grouped_expanding: dict[PgVid, list[ExpandGraph]] = field(
@@ -76,10 +78,114 @@ class A_Bucket:
 
     @classmethod
     def from_f_bucket(cls, curr_pat_vid: PgVid, f_bucket: f_Bucket):
-        curr_pivot_vid = f_bucket.next_pivot
-        if not curr_pivot_vid:
-            curr_pivot_vid = iter(f_bucket.all_matched[0].v_entities.keys()).__next__()
-        return cls(curr_pat_vid, curr_pivot_vid, f_bucket.all_matched)
+        return cls(
+            curr_pat_vid,
+            f_bucket.all_matched,
+            f_bucket.matched_with_pivots,
+        )
+
+    def load_es_on_src(self):
+        pass
+
+    def incremental_load_new_edges(
+        self, pattern_es: list[PatternEdge], storage_adapter: StorageAdapter
+    ):
+        connected_data_vids: set[DgVid] = set()
+
+        # 迭代 `已匹配` 的数据图
+        for idx, pivot_vids in self.matched_idx_with_pivots.items():
+            matched_dg = self.all_matched[idx]
+
+            # 迭代 `边缘点` (当前 `数据图` 上)
+            for pivot_vid in pivot_vids:
+                is_pivot_vid_connected = False
+
+                # 迭代 `模式边`
+                for pat_e in pattern_es:
+                    label, attr = pat_e.label, pat_e.attr
+                    next_vid_grouped_connective_edges: dict[DgVid, list[DataEdge]] = {}
+
+                    if self.curr_pat_vid == pat_e.src_vid:
+                        next_pat_vid = pat_e.dst_vid
+                        matched_data_es = (
+                            storage_adapter.load_e_by_src_vid(pivot_vid, label)
+                            if not attr
+                            else storage_adapter.load_e_by_src_vid_with_attr(
+                                pivot_vid, label, attr
+                            )
+                        )
+                        # 按照 `下一个数据点` 分组
+                        for e in matched_data_es:
+                            next_vid_grouped_connective_edges.setdefault(
+                                e.dst_vid, []
+                            ).append(e)
+                        if not DIRECTED_EDGE_SUPPORT:
+                            # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
+                            additional = (
+                                storage_adapter.load_e_by_dst_vid(pivot_vid, label)
+                                if not attr
+                                else storage_adapter.load_e_by_dst_vid_with_attr(
+                                    pivot_vid, label, attr
+                                )
+                            )
+                            # 对 `追加数据边` 分组
+                            for e in additional:
+                                next_vid_grouped_connective_edges.setdefault(
+                                    e.src_vid, []
+                                ).append(e)
+                            matched_data_es += additional
+                    else:
+                        next_pat_vid = pat_e.src_vid
+                        matched_data_es = (
+                            storage_adapter.load_e_by_dst_vid(pivot_vid, label)
+                            if not attr
+                            else storage_adapter.load_e_by_dst_vid_with_attr(
+                                pivot_vid, label, attr
+                            )
+                        )
+                        # 按照 `下一个数据点` 分组
+                        for e in matched_data_es:
+                            next_vid_grouped_connective_edges.setdefault(
+                                e.src_vid, []
+                            ).append(e)
+                        if not DIRECTED_EDGE_SUPPORT:
+                            # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
+                            additional = (
+                                storage_adapter.load_e_by_src_vid(pivot_vid, label)
+                                if not attr
+                                else storage_adapter.load_e_by_src_vid_with_attr(
+                                    pivot_vid, label, attr
+                                )
+                            )
+                            # 对 `追加数据边` 分组
+                            for e in additional:
+                                next_vid_grouped_connective_edges.setdefault(
+                                    e.dst_vid, []
+                                ).append(e)
+                            matched_data_es += additional
+
+                    if not matched_data_es:
+                        continue
+
+                    is_pivot_vid_connected = True
+
+                    # 开始构造 `扩张图`
+                    # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩张图`
+                    for edges in next_vid_grouped_connective_edges.values():
+                        expanding_dg = ExpandGraph(deepcopy(matched_dg))
+                        expanding_dg.update_valid_dangling_edges(edges)
+                        self.next_pat_grouped_expanding.setdefault(
+                            next_pat_vid, []
+                        ).append(expanding_dg)
+
+                # 如果当前 `数据图` 上的 `边缘点` 连接了 `模式边`, 那么就要更新 `已连接点集`
+                if is_pivot_vid_connected:
+                    connected_data_vids.add(pivot_vid)
+
+        self.all_matched.clear()
+        self.next_pat_grouped_edges.clear()
+
+        return connected_data_vids
 
     def with_new_edges(self, new_edges: list[DgEdge], next_pat_vid: PgEid):
         """添加新边"""
@@ -141,8 +247,8 @@ class A_Bucket:
                 if not is_curr_dg_expandable:
                     continue
 
-                # 指定位置, 构造 `扩展图`
-                # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩展图`
+                # 指定位置, 构造 `扩张图`
+                # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩张图`
                 for connective_edges in next_vid_grouped_connective_edges.values():
                     expanding_dg = ExpandGraph(deepcopy(dg))
                     expanding_dg.update_valid_dangling_edges(connective_edges)
@@ -161,6 +267,7 @@ class C_Bucket:
     """候选集 (C) 桶"""
 
     all_expanded: list[ExpandGraph] = field(default_factory=list)
+    expanded_idx_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
 
     @classmethod
     def build_from_A(
@@ -175,16 +282,22 @@ class C_Bucket:
             return cls()
 
         all_expanded: list[ExpandGraph] = []
+        expanded_with_pivots: dict[int, list[DgVid]] = {}
 
-        for expanding in curr_group:
+        for idx, expanding in enumerate(curr_group):
             # 与给定点集 `loaded_vertices` 求交
-            expanding.update_valid_target_vertices(loaded_vertices)
+            valid_targets = expanding.update_valid_target_vertices(loaded_vertices)
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
 
+            # 更新 `expanded_with_pivots`
+            expanded_with_pivots.setdefault(idx, []).extend(
+                [target.vid for target in valid_targets]
+            )
+
         # 从 `A_bucket` 构造的图, 后续还需要 `进一步枚举`
-        return cls(all_expanded)
+        return cls(all_expanded, expanded_with_pivots)
 
     @classmethod
     def build_from_T(cls, T_bucket: "T_Bucket", loaded_vertices: list[DataVertex]):
@@ -192,16 +305,22 @@ class C_Bucket:
             return cls()
 
         all_expanded: list[ExpandGraph] = []
+        expanded_with_pivots: dict[int, list[DgVid]] = {}
 
-        for expanding in T_bucket.expanding_graphs:
+        for idx, expanding in enumerate(T_bucket.expanding_graphs):
             # 与给定点集 `loaded_vertices` 求交
-            expanding.update_valid_target_vertices(loaded_vertices)
+            valid_targets = expanding.update_valid_target_vertices(loaded_vertices)
 
             # 更新 `all_expanded`
             all_expanded.append(expanding)
 
+            # 更新 `expanded_with_pivots`
+            expanded_with_pivots.setdefault(idx, []).extend(
+                [target.vid for target in valid_targets]
+            )
+
         # 从 `T_bucket` 构造的图, 已经被 `完全枚举`
-        return cls(all_expanded)
+        return cls(all_expanded, expanded_with_pivots)
 
 
 @dataclass

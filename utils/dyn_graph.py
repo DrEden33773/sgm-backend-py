@@ -45,9 +45,9 @@ class VNode:
         self.e_out |= other.e_out
         return self
 
-    def __hash__(self) -> int:
-        """VNode 的哈希值"""
-        return hash(tuple(sorted(self.e_in | self.e_out)))
+    # def __hash__(self) -> int:
+    #     """VNode 的哈希值"""
+    #     return hash(tuple(sorted(self.e_in | self.e_out)))
 
 
 @dataclass
@@ -74,9 +74,9 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
     - { vid -> VNode }
     """
 
-    def __hash__(self):
-        """图的哈希值"""
-        return hash(tuple(sorted(self.adj_table.items())))
+    # def __hash__(self):
+    #     """图的哈希值"""
+    #     return hash(tuple(sorted(self.adj_table.items())))
 
     """ ========== 底层功能 ========== """
 

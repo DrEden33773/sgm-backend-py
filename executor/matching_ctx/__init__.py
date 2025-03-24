@@ -79,12 +79,15 @@ class MatchingCtx:
         self.F_pool[key] = f_Bucket()
 
     def append_to_f_pool(
-        self, target_var: str, matched_dg: DynGraph, next_pivot: Optional[DgVid] = None
+        self, target_var: str, matched_dg: DynGraph, pivot: Optional[DgVid] = None
     ):
         """Init: 更新 f_pool 成功匹配部分"""
         key = resolve_var_name(target_var)
-        self.F_pool[key].append_matched(matched_dg)
-        self.F_pool[key].next_pivot = next_pivot
+        next_idx = len(self.F_pool[key].all_matched)
+        self.F_pool[key].all_matched.append(matched_dg)
+        self.F_pool[key].matched_with_pivots.setdefault(next_idx, []).append(
+            pivot
+        ) if pivot else None
 
     def update_f_pool(self, target_var: str, f_bucket: f_Bucket):
         """Foreach: 更新 F_pool"""

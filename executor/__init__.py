@@ -70,15 +70,11 @@ class ExecEngine:
 
         # 这里最后再过滤一遍, 合并好的图, 规模应该完全与 `pattern` 一致
         # 点数一致, 边数一致
-        #
-        # 顺便, 记得去重
         return list(
-            set(
-                graph
-                for graph in result
-                if graph.get_v_count() == len(self.matching_ctx.pattern_vs)
-                and graph.get_e_count() == len(self.matching_ctx.pattern_es)
-            )
+            graph
+            for graph in result
+            if graph.get_v_count() == len(self.matching_ctx.pattern_vs)
+            and graph.get_e_count() == len(self.matching_ctx.pattern_es)
         )
 
     @staticmethod

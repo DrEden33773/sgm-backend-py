@@ -38,4 +38,4 @@ class InitOperator(InstrOperator):
                 # 如果这个点已经被 `扩张` 过了, 那么就不应该被 `重复更新`
                 continue
             matched_dg = DynGraph().update_v(dg_v)
-            self.ctx.append_to_f_pool(instr.target_var, matched_dg)
+            self.ctx.append_to_f_pool(instr.target_var, matched_dg, dg_v.vid)
