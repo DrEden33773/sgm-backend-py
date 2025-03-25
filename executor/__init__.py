@@ -58,6 +58,7 @@ class ExecEngine:
         if not unjoined:
             return result
 
+        @staticmethod
         def could_match_the_whole_pattern(graph: DynGraph):
             graph_v_pat_cnt = {
                 v_pat: list(graph.v_2_pattern.values()).count(v_pat)

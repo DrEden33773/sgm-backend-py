@@ -4,12 +4,14 @@ from typing import Optional
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
 from config import (
-    SIMPLE_TEST_DB_URL,
+    SIMPLE_TEST_SQL_DB_URL,
     SQLITE_ATTR_USE_FOREIGN_KEY,
     SQLITE_SCHEMA_USE_RELATIONSHIP,
+    USE_CORE_MODE,
 )
 from schema import PatternAttr
 from schema.basic import str_op_to_operator
+from storage.sqlite.db_schema import core_init_db, core_init_db_with_clear
 from utils.tracked_lru_cache import track_lru_cache_annotated
 
 type Attr = int | float | str
@@ -192,13 +194,19 @@ class Edge_Attribute(BaseAttribute, table=True):
 
 
 def init_db(db_url: Optional[str] = None, echo: bool = False):
-    engine = create_engine(SIMPLE_TEST_DB_URL if not db_url else db_url, echo=echo)
+    if USE_CORE_MODE:
+        return core_init_db(db_url, echo)
+
+    engine = create_engine(SIMPLE_TEST_SQL_DB_URL if not db_url else db_url, echo=echo)
     SQLModel.metadata.create_all(engine)
     return engine
 
 
 def init_db_with_clear(db_url: Optional[str] = None, echo: bool = False):
-    engine = create_engine(SIMPLE_TEST_DB_URL if not db_url else db_url, echo=echo)
+    if USE_CORE_MODE:
+        return core_init_db_with_clear(db_url, echo)
+
+    engine = create_engine(SIMPLE_TEST_SQL_DB_URL if not db_url else db_url, echo=echo)
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     return engine

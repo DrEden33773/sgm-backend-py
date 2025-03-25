@@ -6,16 +6,6 @@ from tests.simple_sf01 import *
 from tests.simple_test_dataset import *
 
 
-def failed():
-    """失败的测试用例"""
-
-    # ic-4 查询不到结果
-    # test_ic_4_on_sf01()
-
-    # ic-5 查询过慢
-    # test_ic_5_on_sf01()
-
-
 def succeeded():
     """成功的测试用例"""
 
@@ -33,14 +23,27 @@ def succeeded():
 
     # is-3 - OK
     #
-    # test_is_3_on_sf01()
+    test_is_3_on_sf01()
     # test_is_3_double_directed_knows_on_sf01()
     # test_is_3_reversed_directed_knows_on_sf01()
 
     # is-1 - OK
     #
-    test_is_1_on_sf01()
+    # test_is_1_on_sf01()
+
+
+def failed():
+    """失败的测试用例"""
+
+    # ic-4 查询不到结果
+    #
+    # test_ic_4_on_sf01()
+    test_minimized_ic_4()
+
+    # ic-5 查询过慢
+    #
+    # test_ic_5_on_sf01()
 
 
 if __name__ == "__main__":
-    succeeded()
+    failed()

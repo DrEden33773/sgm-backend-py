@@ -1,4 +1,4 @@
-from config import LDBC_SNB_INTERACTIVE_DB_URL, SCRIPT_DIR
+from config import LDBC_SNB_INTERACTIVE_SQL_DB_URL, SCRIPT_DIR
 from executor import ExecEngine
 from storage.sqlite import SQLiteStorageAdapter
 from utils.tracked_lru_cache import clear_all_tracked_caches
@@ -9,7 +9,7 @@ PLAN_DIR = SCRIPT_DIR / "resources" / "plan"
 def exec(plan_name: str):
     result = ExecEngine.from_json(
         (PLAN_DIR / plan_name).read_text(),
-        storage_adapter=SQLiteStorageAdapter(db_url=LDBC_SNB_INTERACTIVE_DB_URL),
+        storage_adapter=SQLiteStorageAdapter(db_url=LDBC_SNB_INTERACTIVE_SQL_DB_URL),
     ).exec()
 
     ExecEngine.project_all_ids(result)

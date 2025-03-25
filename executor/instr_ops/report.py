@@ -24,6 +24,26 @@ class ReportOperator(InstrOperator):
                 result.append([])
             return
 
+        def could_match_partial_pattern(graph: DynGraph):
+            graph_v_pat_cnt = {
+                v_pat: list(graph.v_2_pattern.values()).count(v_pat)
+                for v_pat in set(graph.v_2_pattern.values())
+            }
+            graph_e_pat_cnt = {
+                e_pat: list(graph.e_2_pattern.values()).count(e_pat)
+                for e_pat in set(graph.e_2_pattern.values())
+            }
+            plan_v_pat_cnt = {v_pat: 1 for v_pat in self.ctx.plan_data.pattern_vs}
+            plan_e_pat_cnt = {e_pat: 1 for e_pat in self.ctx.plan_data.pattern_es}
+
+            for v_pat, cnt in graph_v_pat_cnt.items():
+                if v_pat not in plan_v_pat_cnt or cnt > plan_v_pat_cnt[v_pat]:
+                    return False
+            for e_pat, cnt in graph_e_pat_cnt.items():
+                if e_pat not in plan_e_pat_cnt or cnt > plan_e_pat_cnt[e_pat]:
+                    return False
+            return True
+
         # 更新结果
         #
         # 由于 `Intersect(T, A)` 的 `union_then_intersect_on_connective_v` 策略
@@ -40,7 +60,6 @@ class ReportOperator(InstrOperator):
             filtered = [
                 matched
                 for matched in curr_group
-                if matched.get_v_count() <= len(self.ctx.pattern_vs)
-                and matched.get_e_count() <= len(self.ctx.pattern_es)
+                if could_match_partial_pattern(matched)
             ]
             result.append(filtered)
