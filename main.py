@@ -11,8 +11,8 @@ def succeeded():
 
     # 自建测试集 - OK
     #
-    # test_triangle_forest()
-    # test_more_triangle_forest()
+    test_triangle_forest()
+    test_more_triangle_forest()
 
     # ic-1/6/11/12 - OK
     #
@@ -23,7 +23,7 @@ def succeeded():
 
     # is-3 - OK
     #
-    test_is_3_on_sf01()
+    # test_is_3_on_sf01()
     # test_is_3_double_directed_knows_on_sf01()
     # test_is_3_reversed_directed_knows_on_sf01()
 
@@ -46,4 +46,5 @@ def failed():
 
 
 if __name__ == "__main__":
+    # succeeded()
     failed()

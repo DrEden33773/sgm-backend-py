@@ -34,8 +34,8 @@ class InitOperator(InstrOperator):
 
         # 更新容器
         for data_v in matched_vs:
+            # 如果这个点已经被 `扩张` 过了, 那么就不应该被 `重复更新`
             if data_v.vid in self.ctx.expanded_data_vids:
-                # 如果这个点已经被 `扩张` 过了, 那么就不应该被 `重复更新`
                 continue
             matched_dg = DynGraph().update_v(data_v, pattern_v.vid)
             self.ctx.append_to_f_pool(instr.target_var, matched_dg, data_v.vid)
