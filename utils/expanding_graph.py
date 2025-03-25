@@ -165,42 +165,6 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         return new_dyn_graph
 
     @staticmethod
-    def intersect_then_union_on_same_v(
-        potential_unused: "ExpandGraph", potential_incomplete: "ExpandGraph"
-    ) -> list["ExpandGraph"]:
-        """
-        先确认两张图是否有 `公共点`
-
-        有的话, 就试图把 `预期可以连在一起` 的 `半垂悬边` 连接起来
-        """
-
-        result: list["ExpandGraph"] = []
-
-        # 顶点集更少的, 就是 unused
-        unused, incomplete = potential_unused, potential_incomplete
-        unused_set, incomplete_set = unused.get_vid_set(), incomplete.get_vid_set()
-
-        if not unused_set <= incomplete_set:
-            # 交换位置
-            unused, incomplete = incomplete, unused
-
-        grouped_incomplete_dangling_es = incomplete.group_dangling_e_by_pending_v()
-        grouped_unused_dangling_es = unused.group_dangling_e_by_pending_v()
-
-        # 注意, dangling_es 与 `incomplete` 中的任一组 `dangling_es` 有 `预期的共同点` 时, 才考虑合并
-        for pending_v, dangling_es in grouped_unused_dangling_es.items():
-            for expected_vid in grouped_incomplete_dangling_es:
-                if pending_v != expected_vid:
-                    continue
-                # 每次合并, 直接开一张新图
-                new_expanding_dg = deepcopy(incomplete)
-                pat_strs = [unused.dangling_e_2_pat[e.eid] for e in dangling_es]
-                new_expanding_dg.update_valid_dangling_edges(dangling_es, pat_strs)
-                result.append(new_expanding_dg)
-
-        return result
-
-    @staticmethod
     def union_then_intersect_on_connective_v(
         left_expand_graph: "ExpandGraph", right_expand_graph: "ExpandGraph"
     ) -> list["ExpandGraph"]:

@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 
 from config import DIRECTED_EDGE_SUPPORT
-from executor.matching_ctx.type_aliases import DgEdge, DgVid, PgEid, PgVid
+from executor.matching_ctx.type_aliases import DgVid, PgVid
 from schema import DataEdge, DataVertex, PatternEdge, PatternVertex
 from schema.basic import str_op_to_operator
 from storage.abc import StorageAdapter
@@ -70,9 +70,6 @@ class A_Bucket:
     curr_pat_vid: PgVid
     all_matched: list[DynGraph] = field(default_factory=list)
     matched_idx_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
-
-    next_pat_grouped_edges: dict[PgVid, list[DgEdge]] = field(default_factory=dict)
-    e_2_pat_str: dict[PgEid, str] = field(default_factory=dict)
 
     next_pat_grouped_expanding: dict[PgVid, list[ExpandGraph]] = field(
         default_factory=dict
@@ -228,86 +225,6 @@ class A_Bucket:
 
         return connected_data_vids
 
-    def with_new_edges_of_pattern(
-        self, new_edges: list[DgEdge], next_pat_vid: PgEid, pattern_e: PatternEdge
-    ):
-        """添加新边 (指定模式)"""
-
-        self.next_pat_grouped_edges.setdefault(next_pat_vid, []).extend(new_edges)
-        for e in new_edges:
-            self.e_2_pat_str[e.eid] = pattern_e.eid
-        return self
-
-    def select_connective_edges_and_graphs(
-        self,
-        pattern_vs: dict[PgVid, PatternVertex],
-        storage_adapter: StorageAdapter,
-    ):
-        """选出 `可连接的边` 和 `被连接的图` (内部求交)"""
-
-        connected_data_vids: set[DgVid] = set()
-
-        if not self.all_matched or not self.next_pat_grouped_edges:
-            return connected_data_vids
-
-        # 迭代 `已匹配` 的数据图
-        for dg in self.all_matched:
-            # 分组迭代 `新增边`
-            for next_pat_vid, es in self.next_pat_grouped_edges.items():
-                is_curr_dg_expandable = False
-                next_vid_grouped_conn_es: dict[DgVid, list[DataEdge]] = {}
-
-                for e in es:
-                    # 如果这条边已经存在, 直接跳过
-                    if e.eid in dg.e_entities:
-                        continue
-
-                    # 挑选出 `可连接的` 的边 (同时这条边连接的点, 必须满足 curr_pat_vid 的模式约束)
-                    if (
-                        connective_e_vid := dg.get_first_connective_vid_of_e(e)
-                    ) and does_data_v_satisfy_pattern(
-                        connective_e_vid,
-                        self.curr_pat_vid,
-                        pattern_vs,
-                        storage_adapter,
-                    ):
-                        dangling_e_vid = (
-                            e.dst_vid if connective_e_vid == e.src_vid else e.src_vid
-                        )
-                        # 挑选 `可连接到下一个模式点` 的边
-                        if does_data_v_satisfy_pattern(
-                            dangling_e_vid, next_pat_vid, pattern_vs, storage_adapter
-                        ):
-                            next_vid_grouped_conn_es.setdefault(
-                                dangling_e_vid, []
-                            ).append(e)
-                            is_curr_dg_expandable = True
-                            # 更新 `已连接点集`
-                            connected_data_vids.add(connective_e_vid)
-
-                # 如果当前匹配 `不可扩张`, 直接跳过
-                if not is_curr_dg_expandable:
-                    continue
-
-                # 指定位置, 构造 `扩张图`
-                # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩张图`
-                for conn_es in next_vid_grouped_conn_es.values():
-                    expanding_dg = ExpandGraph(deepcopy(dg))
-                    conn_e_pat_strs = [
-                        self.e_2_pat_str[e.eid]
-                        for e in conn_es
-                        if e.eid in self.e_2_pat_str
-                    ]
-                    expanding_dg.update_valid_dangling_edges(conn_es, conn_e_pat_strs)
-                    self.next_pat_grouped_expanding.setdefault(next_pat_vid, []).append(
-                        expanding_dg
-                    )
-
-        self.all_matched.clear()
-        self.next_pat_grouped_edges.clear()
-
-        return connected_data_vids
-
 
 @dataclass
 class C_Bucket:
@@ -427,27 +344,6 @@ class T_Bucket:
         for outer in outer_:
             for inner in inner_:
                 unions = ExpandGraph.union_then_intersect_on_connective_v(outer, inner)
-                result.extend(unions)
-                continue
-
-                # 完全没有 `共同点` 的情况
-                if not (outer.get_vid_set() & inner.get_vid_set()):
-                    unions = ExpandGraph.union_then_intersect_on_connective_v(
-                        outer, inner
-                    )
-                    result.extend(unions)
-                    continue
-
-                # 虽然理论上来说 outer 是 unused 概率更大, 但是还是要严格的判断
-                # 判断逻辑: 谁是子集, 谁就是 unused
-                unused, incomplete = outer, inner
-                if not outer.get_vid_set() <= inner.get_vid_set():
-                    unused, incomplete = inner, outer
-
-                # 再对共同点的 `边`, 取并集, 进行扩张
-                # 注意, 这里会按照 `unused` 边的数量, 拷贝多份 `incomplete` 图
-                # 每份 incomplete 图, 都会连接一组 unused 边
-                unions = ExpandGraph.intersect_then_union_on_same_v(unused, incomplete)
                 result.extend(unions)
 
         return result

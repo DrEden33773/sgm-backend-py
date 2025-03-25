@@ -27,6 +27,3 @@ DIRECTED_EDGE_SUPPORT = True
 
 DBG_INSTR = True
 """ 是否调试 `指令信息` """
-
-USE_INCREMENTAL_EDGES_LOADING = True
-""" 是否使用增量加载边的方式 """
