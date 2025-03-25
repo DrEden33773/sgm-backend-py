@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # test_ic_12_on_sf01()
 
     # ic-4 查询不到结果
-    # test_ic_4_on_sf01()
+    test_ic_4_on_sf01()
 
     # ic-5 查询过慢
     # test_ic_5_on_sf01()
