@@ -36,17 +36,20 @@ def succeeded():
     # test_ic_4_on_sf01()
     # test_minimized_ic_4()
 
+    # 自建 ic-5 - OK
+    #
+    test_minimized_ic_5()
+
 
 def failed():
     """失败的测试用例"""
 
-    # ic-5 查询过慢
+    # 原始 ic-5 查询过慢
     #
     test_ic_5_on_sf01()
 
 
 if __name__ == "__main__":
-    # succeeded()
-    failed()
-
+    succeeded()
+    # failed()
     pass
