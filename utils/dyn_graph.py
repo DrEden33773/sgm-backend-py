@@ -149,6 +149,18 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         """获取边数量"""
         return len(self.e_entities)
 
+    def get_v_pat_str_set(self):
+        """获取所有点的模式字符串集合"""
+        return set(self.v_2_pattern.values())
+
+    def get_e_pat_str_set(self):
+        """获取所有边的模式字符串集合"""
+        return set(self.e_2_pattern.values())
+
+    def get_all_pat_str_set(self):
+        """获取所有模式字符串集合"""
+        return self.get_v_pat_str_set() | self.get_e_pat_str_set()
+
     """ ========== 基本操作 ========== """
 
     def update_v(self, vertex: VType, pat_str: Optional[str] = None):

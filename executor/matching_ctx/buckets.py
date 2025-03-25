@@ -104,6 +104,10 @@ class A_Bucket:
 
                 # 迭代 `模式边`
                 for pat_e in pattern_es:
+                    # 如果 `matched_dg` 中已经包含 `pat_e` 这条模式边, 应该跳过
+                    if pat_e.eid in matched_dg.get_e_pat_str_set():
+                        continue
+
                     label, attr = pat_e.label, pat_e.attr
                     next_vid_grouped_conn_es: dict[DgVid, list[DataEdge]] = {}
                     next_vid_grouped_conn_pat_strs: dict[DgVid, list[str]] = {}
@@ -126,17 +130,12 @@ class A_Bucket:
                                 pattern_vs,
                                 storage_adapter,
                             )
+                            and e.eid not in matched_dg.e_entities
                         ]
-                        # 按照 `下一个数据点` 分组
-                        for e in matched_data_es:
-                            next_vid_grouped_conn_es.setdefault(e.dst_vid, []).append(e)
-                            next_vid_grouped_conn_pat_strs.setdefault(
-                                e.dst_vid, []
-                            ).append(pat_e.eid)
                         if not DIRECTED_EDGE_SUPPORT:
                             # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
                             # 挑选 `可连接到下一个模式点` 的边
-                            additional = [
+                            matched_data_es += [
                                 e
                                 for e in (
                                     storage_adapter.load_e_by_dst_vid(pivot_vid, label)
@@ -151,16 +150,14 @@ class A_Bucket:
                                     pattern_vs,
                                     storage_adapter,
                                 )
+                                and e.eid not in matched_dg.e_entities
                             ]
-                            # 对 `追加数据边` 分组
-                            for e in additional:
-                                next_vid_grouped_conn_es.setdefault(
-                                    e.src_vid, []
-                                ).append(e)
-                                next_vid_grouped_conn_pat_strs.setdefault(
-                                    e.src_vid, []
-                                ).append(pat_e.eid)
-                            matched_data_es += additional
+                        # 按照 `下一个数据点` 分组
+                        for e in matched_data_es:
+                            next_vid_grouped_conn_es.setdefault(e.dst_vid, []).append(e)
+                            next_vid_grouped_conn_pat_strs.setdefault(
+                                e.dst_vid, []
+                            ).append(pat_e.eid)
                     else:
                         next_pat_vid = pat_e.src_vid
                         # 挑选 `可连接到下一个模式点` 的边
@@ -179,17 +176,12 @@ class A_Bucket:
                                 pattern_vs,
                                 storage_adapter,
                             )
+                            and e.eid not in matched_dg.e_entities
                         ]
-                        # 按照 `下一个数据点` 分组
-                        for e in matched_data_es:
-                            next_vid_grouped_conn_es.setdefault(e.src_vid, []).append(e)
-                            next_vid_grouped_conn_pat_strs.setdefault(
-                                e.src_vid, []
-                            ).append(pat_e.eid)
                         if not DIRECTED_EDGE_SUPPORT:
                             # 如果不支持有向边, 就该把 `反方向` 的边也加载进来
                             # 挑选 `可连接到下一个模式点` 的边
-                            additional = [
+                            matched_data_es += [
                                 e
                                 for e in (
                                     storage_adapter.load_e_by_src_vid(pivot_vid, label)
@@ -204,16 +196,14 @@ class A_Bucket:
                                     pattern_vs,
                                     storage_adapter,
                                 )
+                                and e.eid not in matched_dg.e_entities
                             ]
-                            # 对 `追加数据边` 分组
-                            for e in additional:
-                                next_vid_grouped_conn_es.setdefault(
-                                    e.dst_vid, []
-                                ).append(e)
-                                next_vid_grouped_conn_pat_strs.setdefault(
-                                    e.dst_vid, []
-                                ).append(pat_e.eid)
-                            matched_data_es += additional
+                        # 按照 `下一个数据点` 分组
+                        for e in matched_data_es:
+                            next_vid_grouped_conn_es.setdefault(e.src_vid, []).append(e)
+                            next_vid_grouped_conn_pat_strs.setdefault(
+                                e.src_vid, []
+                            ).append(pat_e.eid)
 
                     if not matched_data_es:
                         continue
