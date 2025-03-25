@@ -426,9 +426,12 @@ class T_Bucket:
 
         for outer in outer_:
             for inner in inner_:
-                # 先在 `点` 上取交集
+                unions = ExpandGraph.union_then_intersect_on_connective_v(outer, inner)
+                result.extend(unions)
+                continue
+
+                # 完全没有 `共同点` 的情况
                 if not (outer.get_vid_set() & inner.get_vid_set()):
-                    # 没有共同点, 属于另一种算法
                     unions = ExpandGraph.union_then_intersect_on_connective_v(
                         outer, inner
                     )
