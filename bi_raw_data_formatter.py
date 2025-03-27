@@ -8,8 +8,17 @@ NODES = BI_DATA_DIR / "nodes"
 RELATIONSHIPS = BI_DATA_DIR / "relationships"
 
 
+GROUP_ALTER_TABLE = {
+    "University": "Organisation",
+    "Company": "Organisation",
+}
+
+
 def deal_with_relationships_in_folder(folder_path: Path):
-    SRC_V_LABEL, E_LABEL, DST_V_LABEL = folder_path.stem.split("_")
+    src_v_label, E_LABEL, dst_v_label = folder_path.stem.split("_")
+    SRC_V_LABEL = GROUP_ALTER_TABLE.get(src_v_label, src_v_label)
+    DST_V_LABEL = GROUP_ALTER_TABLE.get(dst_v_label, dst_v_label)
+
     RAW_SRC_ID = f"{SRC_V_LABEL}Id"
     RAW_DST_ID = f"{DST_V_LABEL}Id"
     SRC_ID = f":START_ID({SRC_V_LABEL})"
@@ -57,7 +66,9 @@ def deal_with_relationships_in_folder(folder_path: Path):
 
 
 def deal_with_nodes_in_folder(folder_path: Path):
-    V_LABEL = folder_path.stem
+    v_label = folder_path.stem
+    V_LABEL = GROUP_ALTER_TABLE.get(v_label, v_label)
+
     RAW_ID = "id"
     RAW_TYPE = "type"
     ID = f":ID({V_LABEL})"

@@ -50,9 +50,7 @@ def load_v(file_path: Path, session: Session):
         new_vertex = DB_Vertex(vid=vid, label=label, attrs=typed_attrs)
         new_vertices.append(new_vertex)
 
-    with tqdm(
-        total=len(new_vertices), desc=f"Loading vertices in: `{file_path}`"
-    ) as bar:
+    with tqdm(total=len(new_vertices), desc=f"加载点信息: '{file_path}'") as bar:
         for v in new_vertices:
             session.add(v)
             v.load_pending_attrs(session)
@@ -91,7 +89,7 @@ def load_e(file_path: Path, session: Session):
         )
         new_edges.append(new_edge)
 
-    with tqdm(total=len(new_edges), desc=f"Loading edges in: `{file_path}`") as bar:
+    with tqdm(total=len(new_edges), desc=f"加载边信息: '{file_path}'") as bar:
         for e in new_edges:
             session.add(e)
             e.load_pending_attrs(session)
