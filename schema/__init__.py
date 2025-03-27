@@ -32,6 +32,18 @@ class PatternAttr:
     value: int | float | str
     type: AttrType
 
+    def to_neo4j_where_sub_sentence(self) -> str:
+        op_table = {
+            Op.Eq: "=",
+            Op.Gt: ">",
+            Op.Ge: ">=",
+            Op.Lt: "<",
+            Op.Le: "<=",
+            Op.Ne: "<>",
+        }
+        value_repr = f"'{self.value}'" if type(self.value) is str else f"{self.value}"
+        return f"{self.key} {op_table[self.op]} {value_repr}"
+
     @classmethod
     def from_attr_info(cls, info: AttrInfo):
         attr = info.get("attr", None)

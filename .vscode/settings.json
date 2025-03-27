@@ -16,6 +16,7 @@
         "pwsh",
         "pycache",
         "Pylance",
+        "sortedcontainers",
         "sqlmodel",
         "Tagclass",
         "titlecase",
