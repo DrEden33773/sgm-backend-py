@@ -18,7 +18,7 @@ class IntersectOperator(InstrOperator):
         dbg.pprint_instr(instr)
 
         if instr.is_single_op():
-            var_prefix, _var_name = self.resolve_var(instr.single_op)
+            var_prefix, _ = self.resolve_var(instr.single_op)
             match var_prefix:
                 case VarPrefix.DbQueryTarget:
                     self.with_adj_set(instr)
@@ -50,7 +50,7 @@ class IntersectOperator(InstrOperator):
         self.ctx.update_C_pool(instr.target_var, C_bucket)
 
     def with_multi_adj_set(self, instr: Instruction):
-        """A(T)_{i} ∩ A_{i+1} -> `Tx`"""
+        """`A(T)_{i}` ∩ `A_{i+1}` -> `Tx`"""
 
         # 初始化 ctx 中 T_pool 对应位置
         self.ctx.init_T_pool(instr.target_var)

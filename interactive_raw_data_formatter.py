@@ -34,9 +34,9 @@ def transform_relationship_csv(file_path: Path):
 
     if updated:
         df.write_csv(file_path, separator="|")
-        print(f"成功更新文件 {file_path}.")
+        print(f"成功更新文件 '{file_path}'.")
     else:
-        print(f"文件 {file_path} 无需更新.")
+        print(f"文件 '{file_path}' 无需更新.")
 
 
 def transform_node_csv(file_path: Path):
@@ -73,9 +73,9 @@ def transform_node_csv(file_path: Path):
 
     if updated:
         df.write_csv(file_path, separator="|")
-        print(f"成功更新文件 {file_path}.")
+        print(f"成功更新文件 '{file_path}'.")
     else:
-        print(f"文件 {file_path} 无需更新.")
+        print(f"文件 '{file_path}' 无需更新.")
 
 
 if __name__ == "__main__":

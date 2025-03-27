@@ -69,7 +69,7 @@ class A_Bucket:
 
     curr_pat_vid: PgVid
     all_matched: list[DynGraph] = field(default_factory=list)
-    matched_idx_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
+    matched_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
 
     next_pat_grouped_expanding: dict[PgVid, list[ExpandGraph]] = field(
         default_factory=dict
@@ -92,7 +92,7 @@ class A_Bucket:
         connected_data_vids: set[DgVid] = set()
 
         # 迭代 `已匹配` 的数据图
-        for idx, pivot_vids in self.matched_idx_with_pivots.items():
+        for idx, pivot_vids in self.matched_with_pivots.items():
             matched_dg = self.all_matched[idx]
 
             # 迭代 `边缘点` (当前 `数据图` 上)
@@ -320,24 +320,19 @@ class T_Bucket:
     def build_from_T_A(cls, left: "T_Bucket", right: A_Bucket):
         left_group = left.expanding_graphs
         right_group = right.next_pat_grouped_expanding.pop(left.target_pat_vid, [])
-
-        # 当两者存在公共点时, 可以肯定地说, `T_Bucket` 就是不完整的, 而 `A_Bucket` 就是未被利用的
-        # 所以显式指定参数位置
-        expanding_graphs = cls.expand_edges_of_two(
-            potential_incomplete_group=left_group, potential_unused_group=right_group
-        )
+        expanding_graphs = cls.expand_edges_of_two(left_group, right_group)
         return cls(left.target_pat_vid, expanding_graphs)
 
     @staticmethod
     def expand_edges_of_two(
-        potential_unused_group: list[ExpandGraph],
-        potential_incomplete_group: list[ExpandGraph],
+        left_group: list[ExpandGraph],
+        right_group: list[ExpandGraph],
     ):
         """分 `有公共点` 和 `无公共点`, 将两张图 `枚举式` 的拓展成新图"""
 
         result: list[ExpandGraph] = []
 
-        outer_, inner_ = potential_unused_group, potential_incomplete_group
+        outer_, inner_ = left_group, right_group
         if len(outer_) > len(inner_):
             outer_, inner_ = inner_, outer_
 

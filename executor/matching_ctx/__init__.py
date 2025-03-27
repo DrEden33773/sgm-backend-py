@@ -3,7 +3,7 @@ from functools import lru_cache
 
 from executor.matching_ctx.buckets import A_Bucket, C_Bucket, T_Bucket, f_Bucket
 from executor.matching_ctx.type_aliases import DgVid, PgEid, PgVid
-from schema import DataEdge, PatternEdge, PatternVertex, PlanData
+from schema import PlanData
 from schema.basic import STR_TUPLE_SPLITTER
 from utils.dyn_graph import DynGraph
 
@@ -20,12 +20,6 @@ class MatchingCtx:
 
     plan_data: PlanData
     """ 执行计划 """
-
-    pattern_vs: dict[PgVid, PatternVertex] = field(default_factory=dict)
-    """ 模式图点集 """
-
-    pattern_es: dict[PgEid, PatternEdge] = field(default_factory=dict)
-    """ 模式图边集 """
 
     expanded_data_vids: set[DgVid] = field(default_factory=set)
     """ 已经在 GetAdj 步骤中, 被 expand 的数据图点集 """
@@ -95,7 +89,7 @@ class MatchingCtx:
         key = resolve_var_name(target_var)
         self.F_pool[key] = f_bucket
 
-    def resolve_f_bucket(self, single_op: str):
+    def resolve_f_pool(self, single_op: str):
         """GetAdj: 解析 f_bucket"""
         key = resolve_var_name(single_op)
         return self.F_pool[key]
@@ -162,12 +156,3 @@ class MatchingCtx:
     def get_pattern_e_batch(self, eids: list[PgEid]):
         """批量获取模式图边"""
         return [self.pattern_es[eid] for eid in eids]
-
-    def get_pattern_e2v(self, e: DataEdge):
-        """获取模式图边的两个顶点"""
-        src, dst = self.pattern_es[e.eid].src_vid, self.pattern_es[e.eid].dst_vid
-        return self.pattern_vs[src], self.pattern_vs[dst]
-
-    def get_pattern_e2v_batch(self, es: list[DataEdge]):
-        """批量获取模式图边的两个顶点"""
-        return [self.get_pattern_e2v(eid) for eid in es]

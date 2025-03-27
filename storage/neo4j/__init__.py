@@ -34,12 +34,6 @@ class Neo4jStorageAdapter(StorageAdapter):
     @override
     @track_lru_cache_annotated
     @lru_cache
-    def load_e(self, e_label: Label) -> list[DataEdge]:
-        raise NotImplementedError
-
-    @override
-    @track_lru_cache_annotated
-    @lru_cache
     def load_e_by_src_vid(self, src_vid: Vid, e_label: Label) -> list[DataEdge]:
         raise NotImplementedError
 
@@ -47,16 +41,6 @@ class Neo4jStorageAdapter(StorageAdapter):
     @track_lru_cache_annotated
     @lru_cache
     def load_e_by_dst_vid(self, dst_vid: Vid, e_label: Label) -> list[DataEdge]:
-        raise NotImplementedError
-
-    @override
-    @track_lru_cache_annotated
-    @lru_cache
-    def load_e_with_attr(
-        self,
-        e_label: Label,
-        e_attr: PatternAttr,
-    ) -> list[DataEdge]:
         raise NotImplementedError
 
     @override

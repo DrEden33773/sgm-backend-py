@@ -21,7 +21,7 @@ class GetAdjOperator(InstrOperator):
 
         pattern_es = self.ctx.get_pattern_e_batch(instr.expand_eid_list)
         pattern_vs = self.ctx.pattern_vs
-        f_bucket = self.ctx.resolve_f_bucket(instr.single_op)
+        f_bucket = self.ctx.resolve_f_pool(instr.single_op)
         A_bucket = A_Bucket.from_f_bucket(curr_pat_vid, f_bucket)
 
         # 先初始化 ctx 中 A_pool 对应位置
