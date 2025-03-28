@@ -1,20 +1,48 @@
 {
-  "matching_order": ["v2", "v1", "v3"],
-  "vertices": {
-    "v1": ["V1", {}],
-    "v2": ["V2", {}],
-    "v3": ["V3", {}]
-  },
-  "edges": {
-    "a": ["v1", "v2", "A", {}],
-    "b": ["v2", "v3", "B", {}]
-  },
+  "matching_order": [
+    "v2",
+    "v1",
+    "v3"
+  ],
+  "vertices": [
+    {
+      "vid": "v1",
+      "label": "V1",
+      "attr": null
+    },
+    {
+      "vid": "v2",
+      "label": "V2",
+      "attr": null
+    },
+    {
+      "vid": "v3",
+      "label": "V3",
+      "attr": null
+    }
+  ],
+  "edges": [
+    {
+      "eid": "a",
+      "src_vid": "v1",
+      "dst_vid": "v2",
+      "label": "A",
+      "attr": null
+    },
+    {
+      "eid": "b",
+      "src_vid": "v2",
+      "dst_vid": "v3",
+      "label": "B",
+      "attr": null
+    }
+  ],
   "instructions": [
     {
       "vid": "v2",
       "type": "init",
       "expand_eid_list": [],
-      "single_op": "",
+      "single_op": null,
       "multi_ops": [],
       "target_var": "f^v2",
       "depend_on": []
@@ -22,11 +50,16 @@
     {
       "vid": "v2",
       "type": "get_adj",
-      "expand_eid_list": ["a", "b"],
+      "expand_eid_list": [
+        "a",
+        "b"
+      ],
       "single_op": "f^v2",
       "multi_ops": [],
       "target_var": "A^v2",
-      "depend_on": ["f^v2"]
+      "depend_on": [
+        "f^v2"
+      ]
     },
     {
       "vid": "v1",
@@ -35,7 +68,10 @@
       "single_op": "A^v2",
       "multi_ops": [],
       "target_var": "C^v1",
-      "depend_on": ["A^v2", "f^v2"]
+      "depend_on": [
+        "A^v2",
+        "f^v2"
+      ]
     },
     {
       "vid": "v1",
@@ -44,7 +80,11 @@
       "single_op": "C^v1",
       "multi_ops": [],
       "target_var": "f^v1",
-      "depend_on": ["A^v2", "C^v1", "f^v2"]
+      "depend_on": [
+        "A^v2",
+        "C^v1",
+        "f^v2"
+      ]
     },
     {
       "vid": "v3",
@@ -53,7 +93,10 @@
       "single_op": "A^v2",
       "multi_ops": [],
       "target_var": "C^v3",
-      "depend_on": ["A^v2", "f^v2"]
+      "depend_on": [
+        "A^v2",
+        "f^v2"
+      ]
     },
     {
       "vid": "v3",
@@ -62,16 +105,31 @@
       "single_op": "C^v3",
       "multi_ops": [],
       "target_var": "f^v3",
-      "depend_on": ["A^v2", "C^v3", "f^v2"]
+      "depend_on": [
+        "A^v2",
+        "C^v3",
+        "f^v2"
+      ]
     },
     {
       "vid": "v3",
       "type": "report",
       "expand_eid_list": [],
-      "single_op": "",
-      "multi_ops": ["f^v1", "f^v2", "f^v3"],
+      "single_op": null,
+      "multi_ops": [
+        "f^v1",
+        "f^v2",
+        "f^v3"
+      ],
       "target_var": "f",
-      "depend_on": ["A^v2", "C^v1", "C^v3", "f^v1", "f^v2", "f^v3"]
+      "depend_on": [
+        "A^v2",
+        "C^v1",
+        "C^v3",
+        "f^v1",
+        "f^v2",
+        "f^v3"
+      ]
     }
   ]
 }

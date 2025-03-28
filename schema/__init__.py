@@ -12,9 +12,9 @@ from schema.basic import (
 from schema.json_repr_typed_dict import (
     AttrInfo,
     DisplayedInstr,
-    EdgeInfoTuple,
+    EInfo,
     PlanDict,
-    VertexInfoTuple,
+    VInfo,
 )
 
 type Vid = str
@@ -46,6 +46,8 @@ class PatternAttr:
 
     @classmethod
     def from_attr_info(cls, info: AttrInfo):
+        if not info:
+            return None
         attr = info.get("attr", None)
         op = info.get("op", None)
         value = info.get("value", None)
@@ -78,7 +80,7 @@ class Instruction:
     vid: Vid
     type: InstructionType
     expand_eid_list: list[str]
-    single_op: str
+    single_op: Optional[str]
     multi_ops: list[str]
     target_var: str
     depend_on: list[str]
@@ -139,8 +141,10 @@ class PatternVertex(VertexBase):
     attr: Optional[PatternAttr] = None
 
     @classmethod
-    def from_vertex_info(cls, vid: Vid, info: VertexInfoTuple):
-        label, attr = info
+    def from_vertex_info(cls, v_info: VInfo):
+        vid = v_info["vid"]
+        label = v_info["label"]
+        attr = v_info.get("attr", None)
         return cls(vid, label, PatternAttr.from_attr_info(attr))
 
     def __hash__(self) -> int:
@@ -164,8 +168,12 @@ class PatternEdge(EdgeBase):
     attr: Optional[PatternAttr] = None
 
     @classmethod
-    def from_edge_info(cls, eid: Eid, info: EdgeInfoTuple):
-        src_vid, dst_vid, label, attr = info
+    def from_edge_info(cls, e_info: EInfo):
+        src_vid = e_info["src_vid"]
+        dst_vid = e_info["dst_vid"]
+        eid = e_info["eid"]
+        label = e_info["label"]
+        attr = e_info.get("attr", None)
         return cls(eid, label, src_vid, dst_vid, PatternAttr.from_attr_info(attr))
 
     def __hash__(self) -> int:
@@ -195,12 +203,12 @@ class PlanData:
     def from_plan_dict(cls, plan_dict: PlanDict):
         matching_order = plan_dict.get("matching_order", [])
         vertices = {
-            vid: PatternVertex.from_vertex_info(vid, info)
-            for vid, info in plan_dict.get("vertices", {}).items()
+            v_info["vid"]: PatternVertex.from_vertex_info(v_info)
+            for v_info in plan_dict.get("vertices", [])
         }
         edges = {
-            eid: PatternEdge.from_edge_info(eid, info)
-            for eid, info in plan_dict.get("edges", {}).items()
+            e_info["eid"]: PatternEdge.from_edge_info(e_info)
+            for e_info in plan_dict.get("edges", [])
         }
         instructions = [
             Instruction.from_displayed_instr(info)

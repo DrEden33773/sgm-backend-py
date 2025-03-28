@@ -1,6 +1,13 @@
-from typing import Any, TypedDict
+from typing import Optional, TypedDict
 
 from schema.basic import AttrType, InstructionType, Op
+
+type Vid = str
+""" 顶点 id 类型 """
+type Eid = str
+""" 边 id 类型 """
+type Label = str
+""" 标签类型  """
 
 
 class DisplayedAttr(TypedDict):
@@ -12,18 +19,22 @@ class DisplayedAttr(TypedDict):
     type: AttrType
 
 
-type EmptyDict = dict[str, Any]
-""" 空字典 """
-type AttrInfo = DisplayedAttr | EmptyDict
+type AttrInfo = Optional[DisplayedAttr]
 """ 属性信息 """
-type VertexInfoTuple = tuple[str, AttrInfo]
-""" 标签, (属性信息) """
-type EdgeInfoTuple = tuple[str, str, str, AttrInfo]
-""" 起点 vid, 终点 vid, 标签, (属性信息) """
-type VertexInfoDict = dict[str, VertexInfoTuple]
-""" { vid -> 顶点信息 } """
-type EdgeInfoDict = dict[str, EdgeInfoTuple]
-""" { eid -> 边信息 } """
+
+
+class VInfo(TypedDict):
+    vid: Vid
+    label: Label
+    attr: AttrInfo
+
+
+class EInfo(TypedDict):
+    eid: Eid
+    label: Label
+    src_vid: Vid
+    dst_vid: Vid
+    attr: AttrInfo
 
 
 class DisplayedInstr(TypedDict):
@@ -32,7 +43,7 @@ class DisplayedInstr(TypedDict):
     vid: str
     type: InstructionType
     expand_eid_list: list[str]
-    single_op: str
+    single_op: Optional[str]
     multi_ops: list[str]
     target_var: str
     depend_on: list[str]
@@ -42,6 +53,6 @@ class PlanDict(TypedDict):
     """执行计划"""
 
     matching_order: list[str]
-    vertices: VertexInfoDict
-    edges: EdgeInfoDict
+    vertices: list[VInfo]
+    edges: list[EInfo]
     instructions: list[DisplayedInstr]
