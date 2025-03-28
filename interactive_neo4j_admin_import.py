@@ -7,7 +7,7 @@ NODES = TEST_DATASET / "nodes" / "all"
 RELATIONSHIPS = TEST_DATASET / "relationships" / "all"
 
 NEO4J_IMPORT_PRE = "neo4j-admin database import full"
-NEO4J_IMPORT_OPT = '--delimiter="|" --threads=20 --high-parallel-io=on --overwrite-destination --verbose'
+NEO4J_IMPORT_OPT = '--delimiter="|" --threads=12 --high-parallel-io=on --overwrite-destination --verbose'
 NEO4J_IMPORT = f"{NEO4J_IMPORT_PRE} {NEO4J_IMPORT_OPT}"
 
 if __name__ == "__main__":

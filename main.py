@@ -33,12 +33,12 @@ def succeeded():
 
     # ic-4 - OK
     #
-    # test_ic_4_on_sf01()
+    test_ic_4_on_sf01()
     # test_minimized_ic_4()
 
     # 自建 ic-5 - OK
     #
-    test_minimized_ic_5()
+    # test_minimized_ic_5()
 
 
 def failed():
