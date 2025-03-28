@@ -202,13 +202,21 @@ class PlanData:
     @classmethod
     def from_plan_dict(cls, plan_dict: PlanDict):
         matching_order = plan_dict.get("matching_order", [])
+        # vertices = {
+        #     v_info["vid"]: PatternVertex.from_vertex_info(v_info)
+        #     for v_info in plan_dict.get("vertices", [])
+        # }
+        # edges = {
+        #     e_info["eid"]: PatternEdge.from_edge_info(e_info)
+        #     for e_info in plan_dict.get("edges", [])
+        # }
         vertices = {
             v_info["vid"]: PatternVertex.from_vertex_info(v_info)
-            for v_info in plan_dict.get("vertices", [])
+            for v_info in plan_dict.get("vertices", {}).values()
         }
         edges = {
             e_info["eid"]: PatternEdge.from_edge_info(e_info)
-            for e_info in plan_dict.get("edges", [])
+            for e_info in plan_dict.get("edges", {}).values()
         }
         instructions = [
             Instruction.from_displayed_instr(info)

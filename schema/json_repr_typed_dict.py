@@ -53,6 +53,6 @@ class PlanDict(TypedDict):
     """执行计划"""
 
     matching_order: list[str]
-    vertices: list[VInfo]
-    edges: list[EInfo]
+    vertices: dict[Vid, VInfo]
+    edges: dict[Eid, EInfo]
     instructions: list[DisplayedInstr]
