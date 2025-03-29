@@ -1,6 +1,7 @@
 # ruff: noqa: F403
 # ruff: noqa: F405
 
+from tests.bi import *
 from tests.complex_sf01 import *
 from tests.simple_sf01 import *
 from tests.simple_test_dataset import *
@@ -25,7 +26,7 @@ def succeeded():
     #
     # test_is_3_on_sf01()
     # test_is_3_double_directed_knows_on_sf01()
-    test_is_3_reversed_directed_knows_on_sf01()
+    # test_is_3_reversed_directed_knows_on_sf01()
 
     # is-1 - OK
     #
@@ -40,6 +41,9 @@ def succeeded():
     #
     # test_minimized_ic_5()
 
+    # bi-3 - OK
+    # test_bi_3_on_sf01()
+
 
 def failed():
     """失败的测试用例"""
@@ -47,6 +51,10 @@ def failed():
     # 原始 ic-5 查询过慢
     #
     test_ic_5_on_sf01()
+
+    # 原始 bi-6 查询过慢, 还会多查出来几个
+    # 不知道能不能暴力去重
+    test_bi_6_on_sf01()
 
 
 if __name__ == "__main__":
