@@ -25,7 +25,7 @@ def succeeded():
     #
     # test_is_3_on_sf01()
     # test_is_3_double_directed_knows_on_sf01()
-    # test_is_3_reversed_directed_knows_on_sf01()
+    test_is_3_reversed_directed_knows_on_sf01()
 
     # is-1 - OK
     #
@@ -34,11 +34,11 @@ def succeeded():
     # ic-4 - OK
     #
     # test_ic_4_on_sf01()
-    test_minimized_ic_4()
+    # test_minimized_ic_4()
 
     # 自建 ic-5 - OK
     #
-    test_minimized_ic_5()
+    # test_minimized_ic_5()
 
 
 def failed():

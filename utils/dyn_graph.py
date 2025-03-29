@@ -375,21 +375,3 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
                 res.adj_table[vid] |= v_node
 
         return res
-
-    def __ior__(self, other: "DynGraph[VType, EType]"):
-        """原位生效: 图与图的并集 (union-with-intersection)"""
-
-        self.v_entities.update(other.v_entities)
-        self.e_entities.update(other.e_entities)
-        self.v_2_pattern.update(other.v_2_pattern)
-        self.e_2_pattern.update(other.e_2_pattern)
-
-        # 单独处理 邻接表
-        for vid, v_node in other.adj_table.items():
-            if vid not in self.adj_table:
-                self.adj_table[vid] = v_node
-            else:
-                # 取并集
-                self.adj_table[vid] |= v_node
-
-        return self

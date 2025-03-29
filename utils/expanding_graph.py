@@ -1,12 +1,10 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
-from functools import lru_cache
 from typing import Optional
 
 from executor.matching_ctx.type_aliases import DgVid
 from schema import DataEdge, DataVertex, EdgeBase, Eid, VertexBase, Vid
 from utils.dyn_graph import DynGraph, VNode
-from utils.tracked_lru_cache import track_lru_cache_annotated
 
 
 @dataclass
@@ -61,8 +59,6 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         更新 `合法半垂悬边`, 返回 `合法半垂悬边`
         """
 
-        @track_lru_cache_annotated
-        @lru_cache
         def is_valid_edge(edge: EType):
             return (
                 # 这个条件很关键, 已经在 dyn_graph 中存在的边, 不需要再添加
@@ -106,8 +102,6 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         - 只有在 `垂悬边` 中的点才会被添加到 `邻接表` 中
         """
 
-        @track_lru_cache_annotated
-        @lru_cache
         def is_valid_target(v: VType):
             for edge in self.dangling_e_entities.values():
                 if edge.__contains__(v.vid) and v.vid not in self.dyn_graph.v_entities:
