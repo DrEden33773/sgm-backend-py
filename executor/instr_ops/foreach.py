@@ -19,7 +19,7 @@ class ForeachOperator(InstrOperator):
         # 先初始化 ctx 中 f_pool 对应位置
         self.ctx.init_f_pool(instr.target_var)
 
-        C_bucket = self.ctx.resolve_C_pool(instr.single_op)
+        C_bucket = self.ctx.resolve_C_pool(instr.single_op or "")
         if not C_bucket:
             return
 

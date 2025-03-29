@@ -53,6 +53,14 @@ class ExecEngine:
 
     def exec(self):
         unjoined = [partial for partial in self.exec_without_final_join() if partial]
+
+        def preview_scale():
+            len_list = [len(partial) for partial in unjoined]
+            print(f"len_list = {len_list}")
+
+        # dbg.pprint(unjoined)
+        preview_scale()
+
         result: list[DynGraph] = []
 
         if not unjoined:

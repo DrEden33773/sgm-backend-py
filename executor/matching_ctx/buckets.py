@@ -242,7 +242,8 @@ class C_Bucket:
         loaded_v_pat_strs: list[str],
     ):
         # 从 A_bucket 中弹出当前分组
-        curr_group = A_bucket.next_pat_grouped_expanding.pop(curr_pat_vid, [])
+        # curr_group = A_bucket.next_pat_grouped_expanding.pop(curr_pat_vid, [])
+        curr_group = A_bucket.next_pat_grouped_expanding.pop(curr_pat_vid)
         if not curr_group:
             return cls()
 
@@ -311,15 +312,18 @@ class T_Bucket:
 
     @classmethod
     def build_from_A_A(cls, left: A_Bucket, right: A_Bucket, target_pat_vid: PgVid):
-        left_group = left.next_pat_grouped_expanding.pop(target_pat_vid, [])
-        right_group = right.next_pat_grouped_expanding.pop(target_pat_vid, [])
+        # left_group = left.next_pat_grouped_expanding.pop(target_pat_vid, [])
+        left_group = left.next_pat_grouped_expanding.pop(target_pat_vid)
+        # right_group = right.next_pat_grouped_expanding.pop(target_pat_vid, [])
+        right_group = right.next_pat_grouped_expanding.pop(target_pat_vid)
         expanding_graphs = cls.expand_edges_of_two(left_group, right_group)
         return cls(target_pat_vid, expanding_graphs)
 
     @classmethod
     def build_from_T_A(cls, left: "T_Bucket", right: A_Bucket):
         left_group = left.expanding_graphs
-        right_group = right.next_pat_grouped_expanding.pop(left.target_pat_vid, [])
+        # right_group = right.next_pat_grouped_expanding.pop(left.target_pat_vid, [])
+        right_group = right.next_pat_grouped_expanding.pop(left.target_pat_vid)
         expanding_graphs = cls.expand_edges_of_two(left_group, right_group)
         return cls(left.target_pat_vid, expanding_graphs)
 

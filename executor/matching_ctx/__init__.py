@@ -92,7 +92,8 @@ class MatchingCtx:
     def resolve_f_pool(self, single_op: str):
         """GetAdj: 解析 f_bucket"""
         key = resolve_var_name(single_op)
-        return self.F_pool[key]
+        # return self.F_pool[key]
+        return self.F_pool.pop(key)
 
     def init_A_pool(self, target_var: str):
         """GetAdj: 初始化 A_pool"""
@@ -122,7 +123,8 @@ class MatchingCtx:
     def resolve_C_pool(self, single_op: str):
         """Foreach: 解析 C_pool"""
         key = resolve_var_name(single_op)
-        return self.C_pool[key]
+        # return self.C_pool[key]
+        return self.C_pool.pop(key)
 
     def init_T_pool(self, target_var: str):
         """Intersect: 初始化 T_pool"""
@@ -137,7 +139,8 @@ class MatchingCtx:
     def resolve_T_pool(self, single_op: str):
         """Intersect(Tx): 解析 T_pool"""
         key = resolve_var_name(single_op)
-        return self.T_pool[key]
+        # return self.T_pool[key]
+        return self.T_pool.pop(key)
 
     """ ========== """
 

@@ -35,7 +35,7 @@ class IntersectOperator(InstrOperator):
         # 初始化 ctx 中 C_pool 对应位置
         self.ctx.init_C_pool(instr.target_var)
 
-        A_bucket = self.ctx.resolve_A_pool(instr.single_op)
+        A_bucket = self.ctx.resolve_A_pool(instr.single_op or "")
         if not A_bucket:
             # 如果 A_bucket 为空, 说明没有邻接点, 那么就直接返回
             return
@@ -82,7 +82,7 @@ class IntersectOperator(InstrOperator):
         self.ctx.init_C_pool(instr.target_var)
 
         loaded_vs, loaded_v_pat_strs = self.load_vertices(instr)
-        T_bucket = self.ctx.resolve_T_pool(instr.single_op)
+        T_bucket = self.ctx.resolve_T_pool(instr.single_op or "")
         if not T_Bucket:
             return
 
