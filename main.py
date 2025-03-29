@@ -44,6 +44,8 @@ def succeeded():
     # bi-3 - OK
     # test_bi_3_on_sf01()
 
+    test_minimized_bi_6()
+
 
 def failed():
     """失败的测试用例"""

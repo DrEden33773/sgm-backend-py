@@ -1,5 +1,6 @@
 from config import SCRIPT_DIR
 from executor import ExecEngine
+from sqlite_dg_builder.bi_6 import BI6Builder
 from sqlite_dg_builder.ic_4 import IC4Builder
 from sqlite_dg_builder.ic_5 import IC5Builder
 from sqlite_dg_builder.more_triangles import MoreTriangleDgBuilder
@@ -43,6 +44,15 @@ def test_minimized_ic_5():
     result = ExecEngine.from_json(
         (PLAN_DIR / "ldbc-ic-5-single-directed-knows.json").read_text()
     ).exec()
+
+    ExecEngine.project_all_ids(result)
+    print(f"\nCOUNT(result) = {len(result)}\n")
+    clear_all_tracked_caches()
+
+
+def test_minimized_bi_6():
+    BI6Builder().build()
+    result = ExecEngine.from_json((PLAN_DIR / "ldbc-bi-6.json").read_text()).exec()
 
     ExecEngine.project_all_ids(result)
     print(f"\nCOUNT(result) = {len(result)}\n")
