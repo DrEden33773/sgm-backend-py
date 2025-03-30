@@ -6,8 +6,14 @@ from storage.sqlite.db_entity import DB_Edge, DB_Vertex, init_db_with_clear
 
 class IC5Builder:
     def __init__(self) -> None:
-        posts = [DataVertex("4", "Post"), DataVertex("44", "Post")]
-        forums = [DataVertex("3", "Forum"), DataVertex("33", "Forum")]
+        posts = [
+            DataVertex("4", "Post"),
+            DataVertex("44", "Post"),
+        ]
+        forums = [
+            DataVertex("3", "Forum"),
+            DataVertex("33", "Forum"),
+        ]
         persons = [
             DataVertex("94", "Person", attrs={"id": 94}),
             DataVertex("1", "Person", attrs={"id": 1}),

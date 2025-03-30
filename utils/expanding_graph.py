@@ -178,15 +178,35 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         right_dyn_graph = right_expand_graph.dyn_graph
 
         # 这里做一下改进, 如果说 left_dyn_graph 的 pattern_set 和 right_dyn_graph 的 pattern_set 有交集
-        # 那么肯定要放弃这个 union 的操作
+        #
+        # 对于有交的 pattern_str, 它们指向的 点/边 必须是相同的
+        #
+        # 否则就应该放弃当前过程
         #
         # 因为事实上, `点` <-> `点模式` 以及 `边` <-> `边模式` 是一一对应的
 
-        if (
+        for common_v_pat in (
             left_dyn_graph.get_v_pat_str_set() & right_dyn_graph.get_v_pat_str_set()
-            or left_dyn_graph.get_e_pat_str_set() & right_dyn_graph.get_e_pat_str_set()
         ):
-            return []
+            if (
+                left_dyn_graph.pattern_2_vs[common_v_pat]
+                != right_dyn_graph.pattern_2_vs[common_v_pat]
+                # 这里直接也过滤掉 `一个模式, 多个点`
+                or len(left_dyn_graph.pattern_2_vs[common_v_pat]) > 1
+                or len(right_dyn_graph.pattern_2_vs[common_v_pat]) > 1
+            ):
+                return []
+        for common_e_pat in (
+            left_dyn_graph.get_e_pat_str_set() & right_dyn_graph.get_e_pat_str_set()
+        ):
+            if (
+                left_dyn_graph.pattern_2_es[common_e_pat]
+                != right_dyn_graph.pattern_2_es[common_e_pat]
+                # 这里直接也过滤掉 `一个模式, 多个边`
+                or len(left_dyn_graph.pattern_2_es[common_e_pat]) > 1
+                or len(right_dyn_graph.pattern_2_es[common_e_pat]) > 1
+            ):
+                return []
 
         left_vs = list(left_dyn_graph.v_entities.values())
         right_vs = list(right_dyn_graph.v_entities.values())

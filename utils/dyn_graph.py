@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from schema import DataEdge, DataVertex, EdgeBase, Eid, VertexBase, Vid
 
@@ -76,10 +76,22 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
     - { vid -> pattern_str }
     """
 
+    pattern_2_vs: dict[str, set[Vid]] = field(default_factory=dict)
+    """ 
+    模式-点映射
+    - { pattern_str -> [vid] }
+    """
+
     e_2_pattern: dict[Eid, str] = field(default_factory=dict)
     """
     边模式映射
     - { eid -> pattern_str }
+    """
+
+    pattern_2_es: dict[str, set[Eid]] = field(default_factory=dict)
+    """ 
+    模式-边映射
+    - { pattern_str -> [eid] }
     """
 
     adj_table: dict[Vid, VNode] = field(default_factory=dict)
@@ -163,32 +175,30 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
     """ ========== 基本操作 ========== """
 
-    def update_v(self, vertex: VType, pat_str: Optional[str] = None):
+    def update_v(self, vertex: VType, pat_str: str):
         """更新点信息"""
 
         self.v_entities[vertex.vid] = vertex
         self.adj_table.setdefault(vertex.vid, VNode())
-        if pat_str:
-            self.v_2_pattern[vertex.vid] = pat_str
+
+        old_pattern = self.v_2_pattern.get(vertex.vid, None)
+        self.v_2_pattern[vertex.vid] = pat_str
+        if old_pattern:
+            self.pattern_2_vs[old_pattern].discard(vertex.vid)
+        self.pattern_2_vs.setdefault(pat_str, set()).add(vertex.vid)
 
         return self
 
-    def update_v_batch(
-        self, vertices: list[VType], pat_strs: Optional[list[str]] = None
-    ):
+    def update_v_batch(self, vertices: list[VType], pat_strs: list[str]):
         """批量更新点信息"""
 
-        if pat_strs is None:
-            for vertex in vertices:
-                self.update_v(vertex)
-        else:
-            assert len(vertices) == len(pat_strs)
-            for vertex, pat_str in zip(vertices, pat_strs):
-                self.update_v(vertex, pat_str)
+        assert len(vertices) == len(pat_strs)
+        for vertex, pat_str in zip(vertices, pat_strs):
+            self.update_v(vertex, pat_str)
 
         return self
 
-    def update_e(self, edge: EType, pat_str: Optional[str] = None):
+    def update_e(self, edge: EType, pat_str: str):
         """更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
         if self.has_all_vids([edge.src_vid, edge.dst_vid]):
@@ -200,8 +210,11 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             src_v.e_out.add(edge.eid)
             dst_v.e_in.add(edge.eid)
 
-            if pat_str:
-                self.e_2_pattern[edge.eid] = pat_str
+            old_pattern = self.e_2_pattern.get(edge.eid, None)
+            self.e_2_pattern[edge.eid] = pat_str
+            if old_pattern:
+                self.pattern_2_es[old_pattern].discard(edge.eid)
+            self.pattern_2_es.setdefault(pat_str, set()).add(edge.eid)
 
             return self
 
@@ -217,16 +230,12 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             # ? -[edge]-> ?
             raise RuntimeError(COMPLETELY_DANGLE_BASE.format(edge.eid))
 
-    def update_e_batch(self, edges: list[EType], pat_strs: Optional[list[str]] = None):
+    def update_e_batch(self, edges: list[EType], pat_strs: list[str]):
         """批量更新边信息 (`顶点不全存在` 的边, 视为垂悬)"""
 
-        if pat_strs is None:
-            for edge in edges:
-                self.update_e(edge)
-        else:
-            assert len(edges) == len(pat_strs)
-            for edge, pat_str in zip(edges, pat_strs):
-                self.update_e(edge, pat_str)
+        assert len(edges) == len(pat_strs)
+        for edge, pat_str in zip(edges, pat_strs):
+            self.update_e(edge, pat_str)
 
         return self
 
@@ -243,6 +252,10 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
         # 删除实体映射
         self.e_entities.pop(eid, None)
+
+        old_pattern = self.e_2_pattern.pop(eid, None)
+        if old_pattern:
+            self.pattern_2_es.pop(old_pattern, None)
 
         return self
 
@@ -362,6 +375,8 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             e_entities={**self.e_entities, **other.e_entities},
             v_2_pattern={**self.v_2_pattern, **other.v_2_pattern},
             e_2_pattern={**self.e_2_pattern, **other.e_2_pattern},
+            pattern_2_vs={**self.pattern_2_vs, **other.pattern_2_vs},
+            pattern_2_es={**self.pattern_2_es, **other.pattern_2_es},
         )
 
         # 单独处理 邻接表

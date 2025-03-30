@@ -17,17 +17,24 @@ class ReportOperator(InstrOperator):
 
         f_pool = self.ctx.F_pool
 
+        plan_v_pat_cnt = {v_pat: 1 for v_pat in self.ctx.plan_data.pattern_vs}
+        plan_e_pat_cnt = {e_pat: 1 for e_pat in self.ctx.plan_data.pattern_es}
+
         def could_match_partial_pattern(graph: DynGraph):
-            graph_v_pat_cnt = {
-                v_pat: list(graph.v_2_pattern.values()).count(v_pat)
-                for v_pat in set(graph.v_2_pattern.values())
-            }
-            graph_e_pat_cnt = {
-                e_pat: list(graph.e_2_pattern.values()).count(e_pat)
-                for e_pat in set(graph.e_2_pattern.values())
-            }
-            plan_v_pat_cnt = {v_pat: 1 for v_pat in self.ctx.plan_data.pattern_vs}
-            plan_e_pat_cnt = {e_pat: 1 for e_pat in self.ctx.plan_data.pattern_es}
+            # graph_v_pat_cnt = {
+            #     v_pat: len(vs) for v_pat, vs in graph.pattern_2_vs.items()
+            # }
+            # graph_e_pat_cnt = {
+            #     e_pat: len(es) for e_pat, es in graph.pattern_2_es.items()
+            # }
+            graph_v_pat_cnt: dict[str, int] = {}
+            graph_e_pat_cnt: dict[str, int] = {}
+            for v_pat in graph.v_2_pattern.values():
+                graph_v_pat_cnt.setdefault(v_pat, 0)
+                graph_v_pat_cnt[v_pat] += 1
+            for e_pat in graph.e_2_pattern.values():
+                graph_e_pat_cnt.setdefault(e_pat, 0)
+                graph_e_pat_cnt[e_pat] += 1
 
             for v_pat, cnt in graph_v_pat_cnt.items():
                 if v_pat not in plan_v_pat_cnt or cnt > plan_v_pat_cnt[v_pat]:

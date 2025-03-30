@@ -66,20 +66,28 @@ class ExecEngine:
         if not unjoined:
             return result
 
+        plan_v_pat_cnt = {v_pat: 1 for v_pat in self.plan_data.pattern_vs}
+        plan_e_pat_cnt = {e_pat: 1 for e_pat in self.plan_data.pattern_es}
+
         @staticmethod
         def could_match_the_whole_pattern(graph: DynGraph):
-            graph_v_pat_cnt = {
-                v_pat: list(graph.v_2_pattern.values()).count(v_pat)
-                for v_pat in set(graph.v_2_pattern.values())
-            }
-            graph_e_pat_cnt = {
-                e_pat: list(graph.e_2_pattern.values()).count(e_pat)
-                for e_pat in set(graph.e_2_pattern.values())
-            }
-            plan_v_pat_cnt = {v_pat: 1 for v_pat in self.plan_data.pattern_vs}
-            plan_e_pat_cnt = {e_pat: 1 for e_pat in self.plan_data.pattern_es}
+            # graph_v_pat_cnt = {
+            #     v_pat: len(vs) for v_pat, vs in graph.pattern_2_vs.items()
+            # }
+            # graph_e_pat_cnt = {
+            #     e_pat: len(es) for e_pat, es in graph.pattern_2_es.items()
+            # }
+            graph_v_pat_cnt: dict[str, int] = {}
+            graph_e_pat_cnt: dict[str, int] = {}
+            for v_pat in graph.v_2_pattern.values():
+                graph_v_pat_cnt.setdefault(v_pat, 0)
+                graph_v_pat_cnt[v_pat] += 1
+            for e_pat in graph.e_2_pattern.values():
+                graph_e_pat_cnt.setdefault(e_pat, 0)
+                graph_e_pat_cnt[e_pat] += 1
+
             return (
-                graph_v_pat_cnt == plan_v_pat_cnt and graph_e_pat_cnt == plan_e_pat_cnt
+                plan_v_pat_cnt == graph_v_pat_cnt and plan_e_pat_cnt == graph_e_pat_cnt
             )
 
         # 全排列组合
@@ -91,7 +99,6 @@ class ExecEngine:
             result.append(curr)
 
         # 这里最后再过滤一遍, 合并好的图, 规模应该完全与 `pattern` 一致
-        # 点数一致, 边数一致
         return list(graph for graph in result if could_match_the_whole_pattern(graph))
 
     @staticmethod
