@@ -5,6 +5,7 @@
         "BENU",
         "Danglable",
         "eids",
+        "Fridtjof",
         "Gustaf",
         "ldbc",
         "libsqlite",
@@ -21,6 +22,7 @@
         "Tagclass",
         "titlecase",
         "venv",
+        "Vieira",
         "winget"
     ],
     "sqltools.useNodeRuntime": true,

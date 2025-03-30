@@ -20,8 +20,18 @@ def exec(plan_name: str):
     clear_all_tracked_caches()
 
 
+def test_bi_2_on_sf01():
+    plan_name = "ldbc-bi-2.json"
+    exec(plan_name)
+
+
 def test_bi_3_on_sf01():
     plan_name = "ldbc-bi-3.json"
+    exec(plan_name)
+
+
+def test_bi_5_on_sf01():
+    plan_name = "ldbc-bi-5.json"
     exec(plan_name)
 
 
