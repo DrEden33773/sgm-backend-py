@@ -47,7 +47,7 @@ class f_Bucket:
     """枚举目标 (f) 桶"""
 
     all_matched: list[DynGraph] = field(default_factory=list)
-    matched_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
+    matched_with_frontiers: dict[int, list[DgVid]] = field(default_factory=dict)
 
     @classmethod
     def from_C_bucket(cls, C_bucket: "C_Bucket"):
@@ -55,12 +55,12 @@ class f_Bucket:
 
         # 现在的算法, 会在 C_bucket 阶段, 直接完成基于 `下一个数据点` 的 `分裂`
         all_matched = [g.to_dyn_graph_cloned() for g in C_bucket.all_expanded]
-        matched_with_pivots = {
-            idx: C_bucket.expanded_idx_with_pivots[idx]
+        matched_with_frontiers = {
+            idx: C_bucket.expanded_idx_with_frontiers[idx]
             for idx, _ in enumerate(C_bucket.all_expanded)
         }
 
-        return cls(all_matched, matched_with_pivots)
+        return cls(all_matched, matched_with_frontiers)
 
 
 @dataclass
@@ -69,7 +69,7 @@ class A_Bucket:
 
     curr_pat_vid: PgVid
     all_matched: list[DynGraph] = field(default_factory=list)
-    matched_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
+    matched_with_frontiers: dict[int, list[DgVid]] = field(default_factory=dict)
 
     next_pat_grouped_expanding: dict[PgVid, list[ExpandGraph]] = field(
         default_factory=dict
@@ -80,7 +80,7 @@ class A_Bucket:
         return cls(
             curr_pat_vid,
             f_bucket.all_matched,
-            f_bucket.matched_with_pivots,
+            f_bucket.matched_with_frontiers,
         )
 
     def incremental_load_new_edges(
@@ -89,15 +89,15 @@ class A_Bucket:
         pattern_vs: dict[PgVid, PatternVertex],
         storage_adapter: StorageAdapter,
     ):
-        connected_data_vids: set[DgVid] = set()
+        formalized_data_vids: set[DgVid] = set()
 
         # 迭代 `已匹配` 的数据图
-        for idx, pivot_vids in self.matched_with_pivots.items():
+        for idx, frontier_vids in self.matched_with_frontiers.items():
             matched_dg = self.all_matched[idx]
 
             # 迭代 `边缘点` (当前 `数据图` 上)
-            for pivot_vid in pivot_vids:
-                is_pivot_vid_connected = False
+            for frontier_vid in frontier_vids:
+                is_pivot_vid_formalized = False
 
                 # 迭代 `模式边`
                 for pat_e in pattern_es:
@@ -115,10 +115,10 @@ class A_Bucket:
                         matched_data_es = [
                             e
                             for e in (
-                                storage_adapter.load_e_by_src_vid(pivot_vid, label)
+                                storage_adapter.load_e_by_src_vid(frontier_vid, label)
                                 if not attr
                                 else storage_adapter.load_e_by_src_vid_with_attr(
-                                    pivot_vid, label, attr
+                                    frontier_vid, label, attr
                                 )
                             )
                             if does_data_v_satisfy_pattern(
@@ -135,10 +135,12 @@ class A_Bucket:
                             matched_data_es += [
                                 e
                                 for e in (
-                                    storage_adapter.load_e_by_dst_vid(pivot_vid, label)
+                                    storage_adapter.load_e_by_dst_vid(
+                                        frontier_vid, label
+                                    )
                                     if not attr
                                     else storage_adapter.load_e_by_dst_vid_with_attr(
-                                        pivot_vid, label, attr
+                                        frontier_vid, label, attr
                                     )
                                 )
                                 if does_data_v_satisfy_pattern(
@@ -161,10 +163,10 @@ class A_Bucket:
                         matched_data_es = [
                             e
                             for e in (
-                                storage_adapter.load_e_by_dst_vid(pivot_vid, label)
+                                storage_adapter.load_e_by_dst_vid(frontier_vid, label)
                                 if not attr
                                 else storage_adapter.load_e_by_dst_vid_with_attr(
-                                    pivot_vid, label, attr
+                                    frontier_vid, label, attr
                                 )
                             )
                             if does_data_v_satisfy_pattern(
@@ -181,10 +183,12 @@ class A_Bucket:
                             matched_data_es += [
                                 e
                                 for e in (
-                                    storage_adapter.load_e_by_src_vid(pivot_vid, label)
+                                    storage_adapter.load_e_by_src_vid(
+                                        frontier_vid, label
+                                    )
                                     if not attr
                                     else storage_adapter.load_e_by_src_vid_with_attr(
-                                        pivot_vid, label, attr
+                                        frontier_vid, label, attr
                                     )
                                 )
                                 if does_data_v_satisfy_pattern(
@@ -205,7 +209,7 @@ class A_Bucket:
                     if not matched_data_es:
                         continue
 
-                    is_pivot_vid_connected = True
+                    is_pivot_vid_formalized = True
 
                     # 开始构造 `扩张图`
                     # 注意! 对每一个 `下一个数据点`, 都要各自构造一个 `扩张图`
@@ -218,12 +222,12 @@ class A_Bucket:
                         ).append(expanding_dg)
 
                 # 如果当前 `数据图` 上的 `边缘点` 连接了 `模式边`, 那么就要更新 `已连接点集`
-                if is_pivot_vid_connected:
-                    connected_data_vids.add(pivot_vid)
+                if is_pivot_vid_formalized:
+                    formalized_data_vids.add(frontier_vid)
 
         self.all_matched.clear()
 
-        return connected_data_vids
+        return formalized_data_vids
 
 
 @dataclass
@@ -231,7 +235,7 @@ class C_Bucket:
     """候选集 (C) 桶"""
 
     all_expanded: list[ExpandGraph] = field(default_factory=list)
-    expanded_idx_with_pivots: dict[int, list[DgVid]] = field(default_factory=dict)
+    expanded_idx_with_frontiers: dict[int, list[DgVid]] = field(default_factory=dict)
 
     @classmethod
     def build_from_A(
@@ -248,7 +252,7 @@ class C_Bucket:
             return cls()
 
         all_expanded: list[ExpandGraph] = []
-        expanded_with_pivots: dict[int, list[DgVid]] = {}
+        expanded_with_frontiers: dict[int, list[DgVid]] = {}
 
         for idx, expanding in enumerate(curr_group):
             # 与给定点集 `loaded_vertices` 求交
@@ -260,12 +264,12 @@ class C_Bucket:
             all_expanded.append(expanding)
 
             # 更新 `expanded_with_pivots`
-            expanded_with_pivots.setdefault(idx, []).extend(
+            expanded_with_frontiers.setdefault(idx, []).extend(
                 [target.vid for target in valid_targets]
             )
 
         # 从 `A_bucket` 构造的图, 后续还需要 `进一步枚举`
-        return cls(all_expanded, expanded_with_pivots)
+        return cls(all_expanded, expanded_with_frontiers)
 
     @classmethod
     def build_from_T(
@@ -278,7 +282,7 @@ class C_Bucket:
             return cls()
 
         all_expanded: list[ExpandGraph] = []
-        expanded_with_pivots: dict[int, list[DgVid]] = {}
+        expanded_with_frontiers: dict[int, list[DgVid]] = {}
 
         for idx, expanding in enumerate(T_bucket.expanding_graphs):
             # 与给定点集 `loaded_vertices` 求交
@@ -290,12 +294,12 @@ class C_Bucket:
             all_expanded.append(expanding)
 
             # 更新 `expanded_with_pivots`
-            expanded_with_pivots.setdefault(idx, []).extend(
+            expanded_with_frontiers.setdefault(idx, []).extend(
                 [target.vid for target in valid_targets]
             )
 
         # 从 `T_bucket` 构造的图, 已经被 `完全枚举`
-        return cls(all_expanded, expanded_with_pivots)
+        return cls(all_expanded, expanded_with_frontiers)
 
 
 @dataclass

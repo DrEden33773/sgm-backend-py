@@ -21,12 +21,12 @@ class MatchingCtx:
     plan_data: PlanData
     """ 执行计划 """
 
-    expanded_data_vids: set[DgVid] = field(default_factory=set)
-    """ 已经在 GetAdj 步骤中, 被 expand 的数据图点集 """
+    formalized_data_vids: set[DgVid] = field(default_factory=set)
+    """ 已经在 GetAdj 步骤中, 匹配到 pattern 的数据图点集 """
 
-    def update_expanded_data_vids(self, data_vids: set[DgVid]):
-        """更新已连接数据图点集"""
-        self.expanded_data_vids.update(data_vids)
+    def update_formalized_data_vids(self, data_vids: set[DgVid]):
+        """更新已匹配到 pattern 的数据图点集"""
+        self.formalized_data_vids.update(data_vids)
 
     F_pool: dict[PgVid, f_Bucket] = field(default_factory=dict)
     """
@@ -52,14 +52,6 @@ class MatchingCtx:
     - { 点模式标签 pg_vid -> T_bucket }
     """
 
-    empty_matched_set_appeared: bool = False
-    """ 
-    是否出现了 `空匹配集`
-    
-    - 一旦出现, 意味着 GetAdj 过程因为无法完整匹配 `所有对应模式边` 而失败
-    - 必须要放弃所有 f_pool 中残存的子图
-    """
-
     def __post_init__(self):
         self.pattern_vs = self.plan_data.pattern_vs
         self.pattern_es = self.plan_data.pattern_es
@@ -82,7 +74,7 @@ class MatchingCtx:
         next_idx = len(self.F_pool[key].all_matched)
         f_bucket = self.F_pool[key]
         f_bucket.all_matched.append(matched_dg)
-        f_bucket.matched_with_pivots.setdefault(next_idx, []).append(pivot)
+        f_bucket.matched_with_frontiers.setdefault(next_idx, []).append(pivot)
 
     def update_f_pool(self, target_var: str, f_bucket: f_Bucket):
         """Foreach: 更新 F_pool"""

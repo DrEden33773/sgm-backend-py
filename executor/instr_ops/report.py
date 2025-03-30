@@ -17,13 +17,6 @@ class ReportOperator(InstrOperator):
 
         f_pool = self.ctx.F_pool
 
-        if self.ctx.empty_matched_set_appeared:
-            # 如果出现了空的匹配集, 那么就不应该进行 `Report` 操作
-            # 但是, 出于一致性原则, 还是把 result 给初始化好
-            for _ in range(len(f_pool)):
-                result.append([])
-            return
-
         def could_match_partial_pattern(graph: DynGraph):
             graph_v_pat_cnt = {
                 v_pat: list(graph.v_2_pattern.values()).count(v_pat)

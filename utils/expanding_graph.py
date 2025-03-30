@@ -170,10 +170,23 @@ class ExpandGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
         - 注意: 这个策略有可能会匹配出 `规模比模式图大` 的 `数据图`
             - 这个例子, 详见 `main.py` 中 `test_more_triangle_plan`
             - 最简单的方法是, `Merge` 阶段进行严格的 `点数 + 边数` 过滤
+
+        - 2025.03.30: `注意` 的问题不复存在
         """
 
         left_dyn_graph = left_expand_graph.dyn_graph
         right_dyn_graph = right_expand_graph.dyn_graph
+
+        # 这里做一下改进, 如果说 left_dyn_graph 的 pattern_set 和 right_dyn_graph 的 pattern_set 有交集
+        # 那么肯定要放弃这个 union 的操作
+        #
+        # 因为事实上, `点` <-> `点模式` 以及 `边` <-> `边模式` 是一一对应的
+
+        if (
+            left_dyn_graph.get_v_pat_str_set() & right_dyn_graph.get_v_pat_str_set()
+            or left_dyn_graph.get_e_pat_str_set() & right_dyn_graph.get_e_pat_str_set()
+        ):
+            return []
 
         left_vs = list(left_dyn_graph.v_entities.values())
         right_vs = list(right_dyn_graph.v_entities.values())
