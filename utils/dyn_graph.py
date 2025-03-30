@@ -375,8 +375,8 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             e_entities={**self.e_entities, **other.e_entities},
             v_2_pattern={**self.v_2_pattern, **other.v_2_pattern},
             e_2_pattern={**self.e_2_pattern, **other.e_2_pattern},
-            pattern_2_vs={**self.pattern_2_vs, **other.pattern_2_vs},
-            pattern_2_es={**self.pattern_2_es, **other.pattern_2_es},
+            # pattern_2_vs={**self.pattern_2_vs, **other.pattern_2_vs}, # BUG
+            # pattern_2_es={**self.pattern_2_es, **other.pattern_2_es}, # BUG
         )
 
         # 单独处理 邻接表
@@ -388,5 +388,17 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
             else:
                 # 取并集
                 res.adj_table[vid] |= v_node
+
+        # 正确合并 pattern_2_vs
+        for pat, vs in self.pattern_2_vs.items():
+            res.pattern_2_vs.setdefault(pat, set()).update(vs)
+        for pat, vs in other.pattern_2_vs.items():
+            res.pattern_2_vs.setdefault(pat, set()).update(vs)
+
+        # 正确合并 pattern_2_es
+        for pat, es in self.pattern_2_es.items():
+            res.pattern_2_es.setdefault(pat, set()).update(es)
+        for pat, es in other.pattern_2_es.items():
+            res.pattern_2_es.setdefault(pat, set()).update(es)
 
         return res
