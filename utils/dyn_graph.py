@@ -255,7 +255,7 @@ class DynGraph[VType: VertexBase = DataVertex, EType: EdgeBase = DataEdge]:
 
         old_pattern = self.e_2_pattern.pop(eid, None)
         if old_pattern:
-            self.pattern_2_es.pop(old_pattern, None)
+            self.pattern_2_es[old_pattern].discard(eid)
 
         return self
 
