@@ -48,3 +48,8 @@ def test_bi_10_on_sf01():
 def test_bi_11_on_sf01():
     plan_name = "ldbc-bi-11.json"
     exec(plan_name)
+
+
+def test_bi_14_on_sf01():
+    plan_name = "ldbc-bi-14.json"
+    exec(plan_name)

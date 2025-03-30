@@ -31,7 +31,6 @@ def succeeded():
     # test_is_3_reversed_directed_knows_on_sf01()
 
     # is-1 - OK
-    #
     # test_is_1_on_sf01()
 
     # ic-5 - OK (原始 ic-5 稍微有点慢, 不过正确的查出来了)
@@ -48,7 +47,10 @@ def succeeded():
     # test_bi_2_on_sf01()
 
     # bi-11 - OK
-    test_bi_11_on_sf01()
+    # test_bi_11_on_sf01()
+
+    # bi=14 - OK
+    test_bi_14_on_sf01()
 
 
 def failed():
