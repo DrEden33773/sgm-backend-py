@@ -9,7 +9,6 @@ from executor.matching_ctx import MatchingCtx
 from schema import PlanData
 from schema.json_repr_typed_dict import PlanDict
 from storage.abc import StorageAdapter
-from storage.sqlite import SQLiteStorageAdapter
 from utils import dbg
 from utils.dyn_graph import DynGraph
 
@@ -23,9 +22,7 @@ class ExecEngine:
     storage_adapter: StorageAdapter
 
     @classmethod
-    def from_json(
-        cls, plan_json: str, storage_adapter: StorageAdapter = SQLiteStorageAdapter()
-    ):
+    def from_json(cls, plan_json: str, storage_adapter: StorageAdapter):
         plan_json_raw = json.loads(plan_json)
         plan_dict = cast(PlanDict, plan_json_raw)
         plan_data = PlanData.from_plan_dict(plan_dict)

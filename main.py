@@ -18,7 +18,7 @@ def succeeded():
     # ic-1/6/11/12/4 - OK
     #
     # test_ic_1_on_sf01()
-    # test_ic_11_on_sf01()
+    test_ic_11_on_sf01()
     # test_ic_6_on_sf01()
     # test_ic_12_on_sf01()
     # test_ic_4_on_sf01()
@@ -50,7 +50,7 @@ def succeeded():
     # test_bi_11_on_sf01()
 
     # bi=14 - OK
-    test_bi_14_on_sf01()
+    # test_bi_14_on_sf01()
 
 
 def failed():
