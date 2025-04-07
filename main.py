@@ -18,7 +18,7 @@ def succeeded():
     # ic-1/6/11/12/4 - OK
     #
     # test_ic_1_on_sf01()
-    test_ic_11_on_sf01()
+    # test_ic_11_on_sf01()
     # test_ic_6_on_sf01()
     # test_ic_12_on_sf01()
     # test_ic_4_on_sf01()
@@ -41,7 +41,7 @@ def succeeded():
     # bi-3 - OK
     # test_bi_3_on_sf01()
 
-    # test_minimized_bi_6()
+    test_minimized_bi_6()
 
     # bi-2 - OK
     # test_bi_2_on_sf01()

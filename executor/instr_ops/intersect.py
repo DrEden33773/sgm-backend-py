@@ -56,7 +56,8 @@ class IntersectOperator(InstrOperator):
         self.ctx.init_T_pool(instr.target_var)
 
         A_buckets = [self.ctx.resolve_A_pool(op) for op in instr.multi_ops]
-        A1, A2 = A_buckets
+        A1 = A_buckets[0]
+        A2 = A_buckets[1]
         if not A1 or not A2:
             return
 

@@ -102,8 +102,8 @@ class A_Bucket:
                 # 迭代 `模式边`
                 for pat_e in pattern_es:
                     # 如果 `matched_dg` 中已经包含 `pat_e` 这条模式边, 应该跳过
-                    if pat_e.eid in matched_dg.get_e_pat_str_set():
-                        continue
+                    # if pat_e.eid in matched_dg.get_e_pat_str_set():
+                    #     continue
 
                     label, attr = pat_e.label, pat_e.attr
                     next_vid_grouped_conn_es: dict[DgVid, list[DataEdge]] = {}
@@ -207,7 +207,8 @@ class A_Bucket:
                             ).append(pat_e.eid)
 
                     if not matched_data_es:
-                        continue
+                        # continue
+                        break
 
                     is_pivot_vid_formalized = True
 
@@ -224,6 +225,8 @@ class A_Bucket:
                 # 如果当前 `数据图` 上的 `边缘点` 连接了 `模式边`, 那么就要更新 `已连接点集`
                 if is_pivot_vid_formalized:
                     formalized_data_vids.add(frontier_vid)
+                else:
+                    break
 
         self.all_matched.clear()
 
