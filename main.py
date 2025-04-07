@@ -58,7 +58,7 @@ def failed():
 
     # 原始 bi-6 查询过慢, unmerged_scale 为 [1, 5924, 7671]
     # 这个最开始的 matchingOrder 显然不合理
-    # test_bi_6_on_sf01()
+    test_bi_6_on_sf01()
 
     # 原始 bi-5 查询过慢, unmerged_scale 为 [3, 5924, 759, 1109]
     # 这个最开始的 matchingOrder 显然不合理
@@ -66,10 +66,10 @@ def failed():
 
     # 原始 bi-10 查询过慢, unmerged_scale 为 [6, 3, 683, 5924]
     # 这个最开始的 matchingOrder 显然不合理
-    test_bi_10_on_sf01()
+    # test_bi_10_on_sf01()
 
 
 if __name__ == "__main__":
-    succeeded()
-    # failed()
+    # succeeded()
+    failed()
     pass
